@@ -1,11 +1,27 @@
 {
   "expo": {
     "name": "CongNgheWeb",
-    "slug": "CongNgheWeb",
+    "slug": "congngheweb",
+    "scheme": "congngheweb",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép Campus truy cập ảnh để bạn chia sẻ với bạn bè.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-router",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
       "supportsTablet": true
     },
