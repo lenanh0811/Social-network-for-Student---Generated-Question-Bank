@@ -11,6 +11,7 @@
     "expo-linear-gradient": "~58.0.3",
     "expo-linking": "~58.0.16",
     "expo-router": "~58.0.30",
+    "expo-secure-store": "~58.0.2",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -31,7 +32,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test:api": "node --test tests/api-contract.test.mjs",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test:auth": "node --test tests/auth-api.test.mjs"
   },
   "private": true
 }
