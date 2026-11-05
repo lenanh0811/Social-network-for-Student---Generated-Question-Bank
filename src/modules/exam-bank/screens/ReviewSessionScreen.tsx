@@ -25,7 +25,7 @@ export default function ReviewSession() {
 
   if (loading && !s) return <><Header title="Duyệt phiên" /><Loading /></>;
   if (!s) return <Screen><Header title="Duyệt phiên" /><ErrorBox message={error ?? 'Lỗi'} onRetry={reload} /></Screen>;
-  const footer = s.status !== 'pending' ? undefined : sel.length ? (
+  const footer = s.status === 'resolved' ? undefined : sel.length ? (
     <Row style={{ justifyContent: 'space-between' }}>
       <Button title="Bỏ chọn" variant="outline" onPress={() => setSel([])} />
       <Button title={`Đưa ${sel.length} câu vào “Cần edit”`} icon="create" loading={busy} onPress={() => act(() => markNeedsEdit(sel), false)} />
@@ -54,7 +54,7 @@ export default function ReviewSession() {
         <Muted>💡 Tích chọn các câu tiềm năng rồi đưa vào “Cần edit”: điểm cộng của sinh viên được bảo lưu, bạn có thể chỉnh sửa (hoặc chat với AI) rồi quyết định giữ/loại ở tab “Cần edit”. Chạm vào câu hỏi để xem chi tiết.</Muted>
       </Card>
       {s.questions.map((q, i) => {
-        const locked = s.status !== 'pending' || q.status === 'needs-edit';
+        const locked = s.status === 'resolved' || q.status === 'needs-edit';
         return (
           <Row key={q.id} style={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
             <Pressable disabled={locked} onPress={() => toggle(q.id)} hitSlop={8} style={{ paddingTop: 16, opacity: locked ? 0.35 : 1 }}>

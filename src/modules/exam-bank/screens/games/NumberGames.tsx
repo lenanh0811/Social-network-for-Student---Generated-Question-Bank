@@ -1,69 +1,112 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
-import { listMyPredictions, submitPrediction } from '@/modules/exam-bank/api/client';
-import { colors } from '@/shared/theme';
-import { Button, Field, fmtDate, Row } from '@/shared/ui';
+import { Pressable, Text, View } from 'react-native';
+import { listGame1Classes, listMySubmissions, listSubjects, placeGame1, placeGame2, placeGame4 } from '@/modules/exam-bank/api/client';
+import { questionCountOf } from '@/modules/exam-bank/api/types';
+import { GameShell } from '@/modules/exam-bank/screens/games/GameShell';
+import { GAME_META } from '@/modules/exam-bank/screens/games/meta';
 import { useLoad } from '@/shared/hooks';
-import { GameShell } from './GameShell';
+import { colors } from '@/shared/theme';
+import { Badge, Button, Chip, ErrorBox, Field, Loading, Muted, Row } from '@/shared/ui';
 
 const digits = (t: string) => t.replace(/\D/g, '');
+type Msg = { ok: boolean; text: string } | undefined;
+const Msg = ({ m }: { m: Msg }) => (m ? <Text style={{ color: m.ok ? colors.success : colors.danger, fontWeight: '600' }}>{m.text}</Text> : null);
 
 function useSubmit() {
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string }>();
-  const run = async (fn: () => Promise<{ value: number; targetDate: string }>) => {
+  const [msg, setMsg] = useState<Msg>();
+  const run = async (fn: () => Promise<unknown>, okText: string) => {
     setBusy(true); setMsg(undefined);
-    try { const p = await fn(); setMsg({ ok: true, text: `Đã ghi nhận dự đoán ${p.value}. Kết quả chốt ngày ${fmtDate(p.targetDate)}.` }); }
-    catch (e) { setMsg({ ok: false, text: (e as Error).message }); } finally { setBusy(false); }
+    try { await fn(); setMsg({ ok: true, text: okText }); return true; }
+    catch (e) { setMsg({ ok: false, text: (e as Error).message }); return false; } finally { setBusy(false); }
   };
   return { busy, msg, run, clear: () => setMsg(undefined) };
 }
-const Msg = ({ m }: { m?: { ok: boolean; text: string } }) => m ? <Text style={{ color: m.ok ? colors.success : colors.danger, fontWeight: '600' }}>{m.text}</Text> : null;
+const meta = (g: keyof typeof GAME_META) => GAME_META[g];
 
-/** Minigame 1 – Đoán số lượng người tham gia đề xuất (sai số ±5%). API 28. */
+/** Game 1 – chọn lớp học phần, đoán số sinh viên sẽ đề xuất câu hỏi vào ngày mai (chốt cược trước 22:00). API 28. */
 export function Mg1({ onClose }: { onClose?: () => void }) {
+  const { data, loading, error, reload } = useLoad(listGame1Classes);
+  const [cls, setCls] = useState<string>();
   const [v, setV] = useState('');
   const { busy, msg, run, clear } = useSubmit();
+  const m = meta('GAME_1_PARTICIPANTS');
   return (
-    <GameShell onClose={onClose} color="#4472C4" no={1} title="Đoán số lượng" icon="people" reward="Đúng (±5%) → nhận điểm thưởng"
-      rule="Dự đoán số sinh viên tham gia đề xuất câu hỏi trong khung thời gian của đợt. Nếu sai số trong ±5% bạn nhận điểm thưởng.">
-      <Field label="Số người tham gia dự đoán" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 120" />
-      <Msg m={msg} />
-      <Button title="Gửi dự đoán" icon="flash" disabled={!v} loading={busy} onPress={() => run(() => submitPrediction('participants', +v))} />
+    <GameShell onClose={onClose} color={m.color} no={m.no} title={m.title} icon={m.icon} reward="Đoán đúng → nhận điểm"
+      rule="Chọn một lớp học phần và dự đoán số sinh viên trong lớp sẽ đề xuất câu hỏi vào ngày mai. Chốt cược trước 22:00 mỗi ngày, mỗi lớp đặt một lần.">
+      {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : !data?.length ? <Muted>Bạn chưa có lớp học phần nào để đặt cược.</Muted> : (
+        <>
+          {data.map((c) => (
+            <Pressable key={c.classId} disabled={c.alreadyPredicted} onPress={() => { setCls(c.classId); clear(); }} style={{ opacity: c.alreadyPredicted ? 0.6 : 1 }}>
+              <Row style={{ flexWrap: 'nowrap', padding: 10, borderRadius: 14, backgroundColor: cls === c.classId ? colors.primarySoft : 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: cls === c.classId ? colors.primary : 'rgba(255,255,255,0.9)' }}>
+                <Ionicons name={cls === c.classId ? 'radio-button-on' : 'radio-button-off'} size={22} color={cls === c.classId ? colors.primary : colors.muted} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: '700', color: colors.text }}>{c.subjectName} · {c.classCode}</Text>
+                  <Muted>{c.lecturerName} · {c.semester}</Muted>
+                </View>
+                {c.alreadyPredicted ? <Badge label={`Đã đoán: ${c.predictedCount ?? '–'}`} fg={colors.success} bg={colors.successSoft} /> : null}
+              </Row>
+            </Pressable>
+          ))}
+          <Field label="Số sinh viên dự đoán" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 12" />
+          <Msg m={msg} />
+          <Button title="Gửi dự đoán" icon="flash" disabled={!cls || !v} loading={busy} onPress={async () => { if (await run(() => placeGame1(cls!, +v), 'Đã ghi nhận dự đoán của bạn!')) { setV(''); reload(); } }} />
+        </>
+      )}
     </GameShell>
   );
 }
 
-/** Minigame 2 – Đoán số câu hỏi của mình được GV chọn, chia theo nhóm Tự làm / AI. API 29. */
+/** Game 2 – chọn phiên của mình, đoán số câu do AI / do người viết sẽ được duyệt. API 29. */
 export function Mg2({ onClose }: { onClose?: () => void }) {
-  const [self, setSelf] = useState('');
-  const [ai, setAi] = useState('');
+  const { data, loading, error, reload } = useLoad(() => listMySubmissions());
+  const [sid, setSid] = useState<string>();
+  const [llm, setLlm] = useState('');
+  const [human, setHuman] = useState('');
   const { busy, msg, run, clear } = useSubmit();
+  const m = meta('GAME_2_APPROVED_QUESTIONS');
+  const s = data?.find((x) => x.id === sid);
   return (
-    <GameShell onClose={onClose} color="#1E8E4E" no={2} title="Đoán tỷ lệ duyệt" icon="checkmark-done" reward="Đoán chính xác → cộng điểm"
-      rule="Dự đoán chính xác số câu hỏi của chính bạn được giảng viên chọn, tách theo hai nhóm: Tự làm và AI tạo.">
-      <Row style={{ flexWrap: 'nowrap' }}>
-        <View style={{ flex: 1 }}><Field label="✍️ Nhóm Tự làm" value={self} onChangeText={(t) => { setSelf(digits(t)); clear(); }} keyboardType="number-pad" placeholder="0" /></View>
-        <View style={{ flex: 1 }}><Field label="🤖 Nhóm AI tạo" value={ai} onChangeText={(t) => { setAi(digits(t)); clear(); }} keyboardType="number-pad" placeholder="0" /></View>
-      </Row>
-      <Msg m={msg} />
-      <Button title="Gửi dự đoán" icon="flash" disabled={!self || !ai} loading={busy} onPress={() => run(() => submitPrediction('approved-questions', +self + +ai, { self: +self, ai: +ai }))} />
+    <GameShell onClose={onClose} color={m.color} no={m.no} title={m.title} icon={m.icon} reward="Đoán chính xác → cộng điểm"
+      rule="Chọn một phiên bạn đã đề xuất và dự đoán số câu hỏi do AI tạo và số câu do bạn tự làm sẽ được giảng viên duyệt vào ngân hàng đề.">
+      {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : !data?.length ? <Muted>Bạn chưa có phiên đề xuất nào.</Muted> : (
+        <>
+          <Row>{data.map((x) => <Chip key={x.id} label={`${x.title} (${questionCountOf(x)} câu)`} active={sid === x.id} onPress={() => { setSid(x.id); clear(); }} />)}</Row>
+          {s ? (
+            <>
+              <Row style={{ flexWrap: 'nowrap' }}>
+                <View style={{ flex: 1 }}><Field label="🤖 Câu do AI được duyệt" value={llm} onChangeText={(t) => { setLlm(digits(t)); clear(); }} keyboardType="number-pad" placeholder="0" /></View>
+                <View style={{ flex: 1 }}><Field label="✍️ Câu tự làm được duyệt" value={human} onChangeText={(t) => { setHuman(digits(t)); clear(); }} keyboardType="number-pad" placeholder="0" /></View>
+              </Row>
+              <Msg m={msg} />
+              <Button title="Gửi dự đoán" icon="flash" disabled={!llm || !human} loading={busy} onPress={() => run(() => placeGame2(s.id, +llm, +human), 'Đã ghi nhận dự đoán của bạn!')} />
+            </>
+          ) : null}
+        </>
+      )}
     </GameShell>
   );
 }
 
-/** Minigame 4 – Đoán số câu hỏi trong ngân hàng đề; chỉ 3 người chính xác & sớm nhất, mỗi người đoán một lần. API 30. */
+/** Game 4 – chọn môn học, đoán tổng quy mô ngân hàng câu hỏi cuối kỳ (top 3 chính xác nhất). API 30. */
 export function Mg4({ onClose }: { onClose?: () => void }) {
+  const { data, loading, error, reload } = useLoad(listSubjects);
+  const [sub, setSub] = useState<string>();
   const [v, setV] = useState('');
   const { busy, msg, run, clear } = useSubmit();
-  const { data, reload } = useLoad(listMyPredictions);
-  const done = !!data?.some((p) => p.type === 'bank-size');
+  const m = meta('GAME_4_SUBJECT_BANK_SIZE');
   return (
-    <GameShell onClose={onClose} color="#B26A00" no={4} title="Đoán quy mô ngân hàng đề" icon="library" reward="Top 3 chính xác & sớm nhất được cộng"
-      rule="Dự đoán số câu hỏi có trong ngân hàng đề của môn học. Chỉ 3 người chính xác nhất và sớm nhất được cộng điểm. Mỗi người chỉ được đoán MỘT lần.">
-      <Field label="Số câu trong ngân hàng" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 500" editable={!done} />
-      <Msg m={done && !msg ? { ok: false, text: 'Bạn đã dùng lượt dự đoán của mình.' } : msg} />
-      <Button title="Gửi dự đoán (một lần)" icon="flash" disabled={!v || done} loading={busy} onPress={async () => { await run(() => submitPrediction('bank-size', +v)); reload(); }} />
+    <GameShell onClose={onClose} color={m.color} no={m.no} title={m.title} icon={m.icon} reward="Top 3 chính xác nhất nhận giải lớn"
+      rule="Dự đoán tổng số câu hỏi được phê duyệt vào ngân hàng câu hỏi của môn học khi kết thúc học kỳ. Top 3 người đoán chuẩn nhất nhận giải thưởng lớn.">
+      {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : (
+        <>
+          <Row>{data?.map((x) => <Chip key={x.id} label={`${x.name} (${x.code})`} active={sub === x.id} onPress={() => { setSub(x.id); clear(); }} />)}</Row>
+          <Field label="Số câu trong ngân hàng" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 500" />
+          <Msg m={msg} />
+          <Button title="Gửi dự đoán" icon="flash" disabled={!sub || !v} loading={busy} onPress={async () => { if (await run(() => placeGame4(sub!, +v), 'Đã ghi nhận dự đoán của bạn!')) setV(''); }} />
+        </>
+      )}
     </GameShell>
   );
 }

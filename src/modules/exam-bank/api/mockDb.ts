@@ -12,6 +12,7 @@ const q = (
   content: string, options: string[], correctIndex: number, topic: string,
   difficulty: Question['difficulty'], status: Question['status'], explanation?: string,
 ): Question => ({
+  confidence: 2,
   id, sessionId, authorId, authorName, subject, content, options, correctIndex, topic, difficulty,
   status, explanation, source: 'self', avgRating: 4.2, ratingCount: 5, answerCount: 24,
 });
@@ -22,7 +23,7 @@ export const db = {
   sessions: [
     {
       id: 's1', title: 'Ôn tập chương 3 – HTTP & REST', subject: 'Công nghệ Web',
-      authorId: 'u1', authorName: STUDENT.name, status: 'approved', createdAt: '2026-10-20T08:00:00Z',
+      authorId: 'u1', authorName: STUDENT.name, status: 'resolved', className: 'IT4409 · 20251', createdAt: '2026-10-20T08:00:00Z',
       questions: [
         q('q1', 's1', 'u1', STUDENT.name, 'Công nghệ Web', 'Phương thức HTTP nào là idempotent và dùng để thay thế toàn bộ tài nguyên?',
           ['GET', 'POST', 'PUT', 'PATCH'], 2, 'REST', 'medium', 'approved', 'PUT thay thế toàn bộ tài nguyên và idempotent.'),
@@ -32,7 +33,7 @@ export const db = {
     },
     {
       id: 's2', title: 'Câu hỏi về JavaScript bất đồng bộ', subject: 'Công nghệ Web',
-      authorId: 'u1', authorName: STUDENT.name, status: 'pending', createdAt: '2026-11-02T10:30:00Z',
+      authorId: 'u1', authorName: STUDENT.name, status: 'reviewing', className: 'IT4409 · 20251', createdAt: '2026-11-02T10:30:00Z',
       questions: [
         q('q3', 's2', 'u1', STUDENT.name, 'Công nghệ Web', 'Promise.all() trả về kết quả khi nào?',
           ['Khi promise đầu tiên xong', 'Khi tất cả promise xong', 'Khi có promise lỗi', 'Ngay lập tức'], 1, 'JavaScript', 'medium', 'needs-edit'),
@@ -40,7 +41,7 @@ export const db = {
     },
     {
       id: 's3', title: 'CSS Flexbox cơ bản', subject: 'Công nghệ Web',
-      authorId: 'u1', authorName: STUDENT.name, status: 'rejected', rejectReason: 'Đáp án đúng chưa chính xác, vui lòng kiểm tra lại câu 1.',
+      authorId: 'u1', authorName: STUDENT.name, status: 'resolved', className: 'IT4409 · 20251',
       createdAt: '2026-10-28T14:00:00Z',
       questions: [
         q('q4', 's3', 'u1', STUDENT.name, 'Công nghệ Web', 'Thuộc tính nào căn giữa theo trục chính của flex container?',
@@ -74,14 +75,31 @@ export const db = {
   } as Record<string, Rating[]>,
   answered: {} as Record<string, number[]>, // qid -> list of chosen indices
   predictions: [
-    { id: 'p1', type: 'participants', value: 120, actual: 112, status: 'settled', points: 80, createdAt: '2026-10-25T00:00:00Z', targetDate: '2026-11-01' },
-    { id: 'p2', type: 'bank-size', value: 500, status: 'open', createdAt: '2026-11-03T00:00:00Z', targetDate: '2026-11-15' },
+    { id: 'p1', game: 'GAME_1_PARTICIPANTS', status: 'resolved', isCorrect: true, prediction: { predicted_count: 12 }, actual: { actual_count: 12 }, createdAt: '2026-10-25T00:00:00Z', resolvedAt: '2026-10-26T00:00:00Z' },
+    { id: 'p2', game: 'GAME_4_SUBJECT_BANK_SIZE', status: 'pending', prediction: { predicted_bank_size: 500 }, createdAt: '2026-11-03T00:00:00Z' },
   ] as Prediction[],
   exams: [] as Exam[],
-  likeGuesses: {} as Record<string, number[]>,
-  llmSubmitted: {} as Record<string, boolean>,
+  checkIn: { streak: 3, checkedInToday: false },
+  llmSubmitted: false,
 };
 db.answered = { q1: [2, 2, 2, 1, 0, 2], q2: [1, 1, 1, 2] };
 
+// Câu bị từ chối: lý do của giảng viên (giống rejection_code / rejection_reason của backend).
+const rejected = db.sessions.flatMap((s) => s.questions).find((x) => x.id === 'q4');
+if (rejected) Object.assign(rejected, { rejectionCode: 'INCORRECT_ANSWER', rejectionReason: 'Đáp án đúng chưa chính xác, vui lòng kiểm tra lại.' });
+
+/** Câu hỏi đã được giảng viên duyệt (nằm trong ngân hàng đề). */
 export const approvedQuestions = () =>
-  db.sessions.filter((s) => s.status === 'approved').flatMap((s) => s.questions);
+  db.sessions.flatMap((s) => s.questions).filter((x) => x.status === 'approved');
+
+export const MOCK_SUBJECTS = [
+  { id: '1', code: 'IT4409', name: 'Công nghệ Web' },
+  { id: '2', code: 'IT3090', name: 'Cơ sở dữ liệu' },
+  { id: '3', code: 'IT3080', name: 'Mạng máy tính' },
+];
+
+export const MOCK_CLASSES = [
+  { id: 'c1', classCode: 'IT4409 · 20251', subjectName: 'Công nghệ Web', subjectCode: 'IT4409', semesterName: 'Học kỳ 20251', activeSemester: true, canPropose: true },
+  { id: 'c2', classCode: 'IT3090 · 20251', subjectName: 'Cơ sở dữ liệu', subjectCode: 'IT3090', semesterName: 'Học kỳ 20251', activeSemester: true, canPropose: true },
+  { id: 'c3', classCode: 'IT3080 · 20243', subjectName: 'Mạng máy tính', subjectCode: 'IT3080', semesterName: 'Học kỳ 20243', activeSemester: false, canPropose: false },
+];

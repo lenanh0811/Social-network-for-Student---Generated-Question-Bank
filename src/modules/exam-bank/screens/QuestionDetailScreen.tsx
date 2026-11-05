@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { answerQuestion, getCachedQuestion, getQuestionStatistics, listRatings, rateQuestion } from '@/modules/exam-bank/api/client';
+import { answerQuestion, getCachedQuestion, getQuestionStatistics, listRatings, rateQuestion, reportQuestion } from '@/modules/exam-bank/api/client';
 import type { AnswerResult } from '@/modules/exam-bank/api/types';
 import { LETTERS } from '@/modules/exam-bank/components/QuestionCard';
 import { Bar, Button, Card, ErrorBox, Field, fmtDate, go, H2, Header, Loading, Muted, Row, Screen, Segmented, Stars } from '@/shared/ui';
@@ -26,7 +26,7 @@ export default function QuestionDetail() {
     <Screen>
       <Header title="Câu hỏi" />
       <Card>
-        <Row><DifficultyBadge d={q.difficulty} /><Muted>{q.topic} · {q.subject}</Muted></Row>
+        <Row>{q.difficulty ? <DifficultyBadge d={q.difficulty} /> : null}<Muted>{[q.topic, q.subject].filter(Boolean).join(' · ')}</Muted></Row>
         <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{q.content}</Text>
         <Muted>Đóng góp bởi {q.authorName}</Muted>
         {role === 'lecturer' ? (
@@ -114,6 +114,7 @@ function RatingsTab({ id }: { id: string }) {
         <Field label="Nhận xét (không bắt buộc)" value={comment} onChangeText={setComment} multiline placeholder="Câu hỏi có rõ ràng, đáp án có chính xác không?" />
         <Button title="Gửi đánh giá" disabled={!stars} loading={busy} onPress={send} />
       </Card>
+      <ReportError id={id} />
       {error ? <ErrorBox message={error} onRetry={reload} /> : null}
       {loading && !data ? <Loading /> : null}
       {data && !data.length ? <Muted style={{ textAlign: 'center' }}>Chưa có đánh giá nào.</Muted> : null}
@@ -125,5 +126,30 @@ function RatingsTab({ id }: { id: string }) {
         </Card>
       ))}
     </>
+  );
+}
+
+/** Minigame 5 – báo câu sai đề / sai đáp án (đánh giá với is_error). Giảng viên sẽ thẩm định. */
+function ReportError({ id }: { id: string }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; t: string }>();
+  const send = async () => {
+    setBusy(true); setMsg(undefined);
+    try { await reportQuestion(id, reason.trim()); setMsg({ ok: true, t: 'Đã gửi báo lỗi. Nếu giảng viên xác nhận, bạn sẽ được cộng điểm.' }); setOpen(false); setReason(''); }
+    catch (e) { setMsg({ ok: false, t: (e as Error).message }); } finally { setBusy(false); }
+  };
+  return (
+    <Card>
+      <H2>Câu hỏi có lỗi?</H2>
+      {open ? (
+        <>
+          <Field label="Mô tả lỗi" value={reason} onChangeText={setReason} multiline placeholder="VD: Đáp án đúng bị sai, đề bài mơ hồ..." />
+          <Row><Button small title="Huỷ" variant="outline" onPress={() => setOpen(false)} /><Button small title="Gửi báo lỗi" icon="flag" variant="danger" disabled={!reason.trim()} loading={busy} onPress={send} /></Row>
+        </>
+      ) : <Button small title="Báo câu này bị lỗi" icon="flag-outline" variant="outline" onPress={() => setOpen(true)} />}
+      {msg ? <Text style={{ color: msg.ok ? colors.success : colors.danger, fontWeight: '600' }}>{msg.t}</Text> : null}
+    </Card>
   );
 }

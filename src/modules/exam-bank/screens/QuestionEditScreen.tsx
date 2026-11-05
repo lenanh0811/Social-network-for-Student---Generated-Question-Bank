@@ -9,7 +9,7 @@ import { Button, Card, ErrorBox, Header, Screen } from '@/shared/ui';
 export default function EditQuestion() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const q = getCachedQuestion(id);
-  const [d, setD] = useState<QuestionDraft | undefined>(q && { source: 'self', content: q.content, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation, topic: q.topic, difficulty: q.difficulty });
+  const [d, setD] = useState<QuestionDraft | undefined>(q && { source: 'self', confidence: q.confidence ?? 2, content: q.content, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation, topic: q.topic, difficulty: q.difficulty });
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
   const [err, setErr] = useState<string>();

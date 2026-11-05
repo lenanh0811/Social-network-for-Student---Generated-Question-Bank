@@ -1,19 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState, type ComponentProps } from 'react';
+import { useState } from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { listMySubmissions } from '@/modules/exam-bank/api/client';
 import type { SessionStatus } from '@/modules/exam-bank/api/types';
+import { questionCountOf } from '@/modules/exam-bank/api/types';
 import { StatusBadge } from '@/modules/exam-bank/components/badges';
 import { Button, Card, Chip, Empty, ErrorBox, fmtDate, go, H1, H2, Loading, Muted, Row, Screen } from '@/shared/ui';
 import { useLoad } from '@/shared/hooks';
 import { colors } from '@/shared/theme';
 
 type Filter = SessionStatus | 'all';
-const TILES: { v: Filter; l: string; icon: ComponentProps<typeof Ionicons>['name']; color: string }[] = [
-  { v: 'all', l: 'Tất cả', icon: 'albums', color: colors.blue },
-  { v: 'pending', l: 'Chờ duyệt', icon: 'time', color: colors.warning },
-  { v: 'approved', l: 'Đã duyệt', icon: 'checkmark-circle', color: colors.success },
-  { v: 'rejected', l: 'Bị từ chối', icon: 'close-circle', color: colors.danger },
+const TILES: { v: Filter; l: string }[] = [
+  { v: 'all', l: 'Tất cả' }, { v: 'pending', l: 'Chờ duyệt' }, { v: 'reviewing', l: 'Đang duyệt' }, { v: 'resolved', l: 'Đã xử lý' },
 ];
 const STEPS = [
   ['create', 'Soạn câu hỏi', 'Viết câu trắc nghiệm, chọn đáp án đúng và khai báo nguồn gốc.'],
@@ -32,7 +30,7 @@ export default function MySubmissions() {
 
   const main = (
     <View style={{ flex: 1, gap: 12, minWidth: 0 }}>
-      <H2>{filter === 'all' ? 'Tất cả phiên gửi' : TILES.find((t) => t.v === filter)!.l}</H2>
+      <H2>{filter === 'all' ? 'Tất cả phiên gửi' : TILES.find((x) => x.v === filter)!.l}</H2>
       {error ? <ErrorBox message={error} onRetry={reload} /> : null}
       {loading && !data ? <Loading /> : null}
       {list && !list.length ? (
@@ -47,10 +45,9 @@ export default function MySubmissions() {
           </Row>
           <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{s.title}</Text>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Muted>{s.subject} · {s.questions.length} câu hỏi</Muted>
+            <Muted>{[s.subject, s.className].filter(Boolean).join(' · ')} · {questionCountOf(s)} câu hỏi</Muted>
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
           </Row>
-          {s.status === 'rejected' && s.rejectReason ? <Text style={{ color: colors.danger, fontSize: 13 }}>Lý do: {s.rejectReason}</Text> : null}
         </Card>
       ))}
     </View>

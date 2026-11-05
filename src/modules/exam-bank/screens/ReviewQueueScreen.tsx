@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { questionCountOf } from '@/modules/exam-bank/api/types';
 import { approveSessions, listPendingSessions, rejectSessions } from '@/modules/exam-bank/api/client';
 import NeedsEditList from '@/modules/exam-bank/screens/NeedsEditList';
 import { Button, Card, Empty, ErrorBox, fmtDate, Field, go, H1, Loading, Muted, Row, Screen, Segmented } from '@/shared/ui';
@@ -60,7 +61,7 @@ export default function Review() {
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700' }}>{s.title}</Text>
                 <Muted>{s.authorName} · {s.subject}</Muted>
-                <Muted>{s.questions.length} câu hỏi · gửi {fmtDate(s.createdAt)}</Muted>
+                <Muted>{questionCountOf(s)} câu hỏi · gửi {fmtDate(s.createdAt)}</Muted>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.muted} />
             </Row>

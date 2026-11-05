@@ -1,15 +1,18 @@
-import type { Difficulty, QuestionStatus } from '@/modules/exam-bank/api/types';
+import type { Difficulty, QuestionStatus, SessionStatus } from '@/modules/exam-bank/api/types';
 import { Badge } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 
-const STATUS: Record<QuestionStatus, [string, string, string]> = {
+type AnyStatus = SessionStatus | QuestionStatus;
+const STATUS: Record<AnyStatus, [string, string, string]> = {
   pending: ['Chờ duyệt', colors.warning, colors.warningSoft],
+  reviewing: ['Đang duyệt', colors.blue, colors.blueSoft],
+  resolved: ['Đã xử lý', colors.success, colors.successSoft],
   approved: ['Đã duyệt', colors.success, colors.successSoft],
   rejected: ['Bị từ chối', colors.danger, colors.dangerSoft],
   'needs-edit': ['Cần edit', colors.blue, colors.blueSoft],
 };
-export const statusLabel = (st: QuestionStatus) => STATUS[st][0];
-export const StatusBadge = ({ status }: { status: QuestionStatus }) => <Badge label={STATUS[status][0]} fg={STATUS[status][1]} bg={STATUS[status][2]} />;
+export const statusLabel = (st: AnyStatus) => STATUS[st][0];
+export const StatusBadge = ({ status }: { status: AnyStatus }) => <Badge label={STATUS[status][0]} fg={STATUS[status][1]} bg={STATUS[status][2]} />;
 
 const DIFF: Record<Difficulty, [string, string, string]> = {
   easy: ['Dễ', colors.success, colors.successSoft],

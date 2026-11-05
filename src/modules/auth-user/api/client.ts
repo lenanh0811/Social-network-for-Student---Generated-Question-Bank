@@ -64,7 +64,9 @@ export async function device(): Promise<DeviceInfo> {
     }
   }
   const name = Platform.OS === 'web' ? 'Trình duyệt web' : Constants.deviceName ?? (Platform.OS === 'ios' ? 'iPhone' : 'Điện thoại Android');
-  return { id: deviceId, name, platform: Platform.OS };
+  // Backend yêu cầu platform viết HOA: IOS | ANDROID | DESKTOP | WEB (Platform.OS trả về chữ thường).
+  const platform = ({ ios: 'IOS', android: 'ANDROID', web: 'WEB' } as Record<string, string>)[Platform.OS] ?? 'DESKTOP';
+  return { id: deviceId, name, platform };
 }
 
 // ───────── HTTP ─────────

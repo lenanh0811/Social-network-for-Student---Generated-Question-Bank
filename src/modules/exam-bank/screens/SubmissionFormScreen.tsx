@@ -2,11 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import { getMySubmission, proposeSession, updateMySubmission } from '@/modules/exam-bank/api/client';
-import type { QuestionDraft } from '@/modules/exam-bank/api/types';
+import { getMySubmission, listMyClasses, proposeSession, updateMySubmission } from '@/modules/exam-bank/api/client';
+import type { CourseClassOption, QuestionDraft } from '@/modules/exam-bank/api/types';
 import { emptyDraft, QuestionEditor, validateDraft } from '@/modules/exam-bank/components/QuestionEditor';
 import { Button, Card, Chip, ErrorBox, Field, H2, Header, Loading, Muted, Row, Screen } from '@/shared/ui';
-import { SUBJECTS } from '@/modules/exam-bank/constants';
 import { colors } from '@/shared/theme';
 
 const notify = (m: string) => (Platform.OS === 'web' ? window.alert(m) : Alert.alert('Thông báo', m));
@@ -15,44 +14,65 @@ const notify = (m: string) => (Platform.OS === 'web' ? window.alert(m) : Alert.a
 export default function SubmissionForm() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState(SUBJECTS[0]);
+  const [content, setContent] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [classes, setClasses] = useState<CourseClassOption[]>([]);
+  const [classId, setClassId] = useState<string>();
+  const [classLabel, setClassLabel] = useState('');
   const [qs, setQs] = useState<QuestionDraft[]>([emptyDraft()]);
-  const [loading, setLoading] = useState(!!id);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [honest, setHonest] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    getMySubmission(id).then((s) => {
-      setTitle(s.title); setSubject(s.subject);
-      setQs(s.questions.map(({ source, content, options, correctIndex, explanation, topic, difficulty }) => ({ source: source ?? 'self', content, options, correctIndex, explanation, topic, difficulty })));
-    }).catch((e) => setError(e.message)).finally(() => setLoading(false));
+    (async () => {
+      try {
+        if (id) {
+          const s = await getMySubmission(id);
+          setTitle(s.title); setContent(s.content ?? ''); setClassId(s.courseClassId);
+          setClassLabel([s.subject, s.className].filter(Boolean).join(' · '));
+          setQs(s.questions.map((q) => ({
+            id: q.id, source: q.source, confidence: q.confidence ?? 2, content: q.content, options: q.options,
+            correctIndex: q.correctIndex, explanation: q.explanation ?? '',
+          })));
+        } else {
+          const list = (await listMyClasses()).filter((c) => c.canPropose);
+          setClasses(list);
+          setClassId((cur) => cur ?? list.find((c) => c.activeSemester)?.id ?? list[0]?.id);
+        }
+      } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
+    })();
   }, [id]);
 
   const submit = async () => {
     setShowErrors(true);
     if (!honest) return notify('Vui lòng xác nhận cam kết khai báo trung thực nguồn gốc câu hỏi.');
     if (!title.trim() || qs.some((q) => validateDraft(q))) return notify('Vui lòng điền đầy đủ thông tin các câu hỏi.');
+    if (!id && !classId) return notify('Hãy chọn lớp học phần để đề xuất.');
     setBusy(true);
     try {
-      const body = { title: title.trim(), subject, questions: qs };
-      if (id) await updateMySubmission(id, body); else await proposeSession(body);
-      notify(id ? 'Đã cập nhật và gửi lại để duyệt.' : 'Đã gửi đề xuất, vui lòng chờ giảng viên duyệt.');
+      if (id) await updateMySubmission(id, { title, content, sourceUrl, questions: qs });
+      else await proposeSession({ title, content, sourceUrl, courseClassId: classId!, questions: qs });
+      notify(id ? 'Đã cập nhật phiên đề xuất.' : 'Đã gửi đề xuất, vui lòng chờ giảng viên duyệt.');
       router.back();
     } catch (e) { notify((e as Error).message); } finally { setBusy(false); }
   };
 
-  if (loading) return <><Header title="Chỉnh sửa" /><Loading /></>;
+  if (loading) return <><Header title="Đề xuất câu hỏi" /><Loading /></>;
   return (
-    <Screen footer={<Button title={id ? 'Lưu & gửi lại' : 'Gửi đề xuất'} icon="send" loading={busy} onPress={submit} />}>
+    <Screen footer={<Button title={id ? 'Lưu thay đổi' : 'Gửi đề xuất'} icon="send" loading={busy} disabled={!!error && !id && !classes.length} onPress={submit} />}>
       <Header title={id ? 'Chỉnh sửa phiên gửi' : 'Đề xuất câu hỏi'} />
       {error ? <ErrorBox message={error} /> : null}
       <Card>
         <Field label="Tiêu đề phiên" value={title} onChangeText={setTitle} placeholder="VD: Ôn tập chương 3" error={showErrors && !title.trim() ? 'Bắt buộc' : undefined} />
-        <Muted>Môn học</Muted>
-        <Row>{SUBJECTS.map((s) => <Chip key={s} label={s} active={subject === s} onPress={() => setSubject(s)} />)}</Row>
+        <Field label="Mô tả (không bắt buộc)" value={content} onChangeText={setContent} multiline placeholder="Phiên này gồm những nội dung gì?" />
+        <Field label="Link nguồn tham khảo (không bắt buộc)" value={sourceUrl} onChangeText={setSourceUrl} autoCapitalize="none" keyboardType="url" placeholder="https://..." />
+        <Muted>Lớp học phần</Muted>
+        {id ? <Row><Chip label={classLabel || 'Lớp học phần của phiên'} active /></Row> : classes.length ? (
+          <Row>{classes.map((c) => <Chip key={c.id} label={`${c.subjectName} · ${c.classCode}`} active={classId === c.id} onPress={() => setClassId(c.id)} />)}</Row>
+        ) : <Muted>Bạn chưa có lớp học phần nào được phép đề xuất câu hỏi.</Muted>}
       </Card>
       {qs.map((q, i) => (
         <Card key={i}>

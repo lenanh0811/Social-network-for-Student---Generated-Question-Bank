@@ -5,12 +5,15 @@ import { colors, radius } from '@/shared/theme';
 import { LETTERS } from '@/modules/exam-bank/components/QuestionCard';
 import { Chip, Field, Row } from '@/shared/ui';
 
-export const emptyDraft = (): QuestionDraft => ({ source: 'self', content: '', options: ['', '', '', ''], correctIndex: 0, explanation: '', topic: '', difficulty: 'easy' });
+export const emptyDraft = (): QuestionDraft => ({ source: 'self', confidence: 2, content: '', options: ['', '', '', ''], correctIndex: 0, explanation: '', });
+
+/** Mức tự tin 0–4 (confidence). */
+const CONFIDENCE = ['Không chắc', 'Hơi chắc', 'Khá chắc', 'Rất chắc', 'Chắc chắn'];
 
 export const validateDraft = (d: QuestionDraft) =>
   !d.content.trim() ? 'Nhập nội dung câu hỏi'
     : d.options.some((o) => !o.trim()) ? 'Điền đủ các đáp án'
-    : !d.topic.trim() ? 'Nhập chủ đề' : null;
+    : null;
 
 /** Form soạn một câu hỏi trắc nghiệm: nội dung, các đáp án (chọn đáp án đúng), giải thích, chủ đề, độ khó. */
 export function QuestionEditor({ value, onChange, showErrors, showSource }: { value: QuestionDraft; onChange: (d: QuestionDraft) => void; showErrors?: boolean; showSource?: boolean }) {
@@ -46,15 +49,26 @@ export function QuestionEditor({ value, onChange, showErrors, showSource }: { va
         ))}
       </View>
       <Field label="Giải thích (không bắt buộc)" multiline value={value.explanation} onChangeText={(t) => set('explanation', t)} placeholder="Vì sao đáp án này đúng?" />
-      <Field label="Chủ đề" value={value.topic} onChangeText={(t) => set('topic', t)} placeholder="VD: REST, SQL, CSS..." error={showErrors && !value.topic.trim() ? 'Bắt buộc' : undefined} />
-      <View style={{ gap: 6 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600' }}>Độ khó</Text>
-        <Row>
-          {([['easy', 'Dễ'], ['medium', 'Trung bình'], ['hard', 'Khó']] as [Difficulty, string][]).map(([d, l]) => (
-            <Chip key={d} label={l} active={value.difficulty === d} onPress={() => set('difficulty', d)} />
-          ))}
-        </Row>
-      </View>
+      {showSource ? (
+        <View style={{ gap: 6 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Mức độ tự tin của bạn về câu hỏi này</Text>
+          <Row>
+            {CONFIDENCE.map((l, i) => <Chip key={i} label={`${i} · ${l}`} active={value.confidence === i} onPress={() => set('confidence', i)} />)}
+          </Row>
+        </View>
+      ) : (
+        <>
+          <Field label="Chủ đề" value={value.topic ?? ''} onChangeText={(t) => set('topic', t)} placeholder="VD: REST, SQL, CSS..." />
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600' }}>Độ khó</Text>
+            <Row>
+              {([['easy', 'Dễ'], ['medium', 'Trung bình'], ['hard', 'Khó']] as [Difficulty, string][]).map(([d, l]) => (
+                <Chip key={d} label={l} active={value.difficulty === d} onPress={() => set('difficulty', d)} />
+              ))}
+            </Row>
+          </View>
+        </>
+      )}
     </View>
   );
 }

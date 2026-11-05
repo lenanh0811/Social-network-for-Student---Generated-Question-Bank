@@ -1,18 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, Platform, Text, View } from 'react-native';
+import { Alert, Platform, View } from 'react-native';
 import { deleteMySubmission, getMySubmission } from '@/modules/exam-bank/api/client';
 import { QuestionCard } from '@/modules/exam-bank/components/QuestionCard';
-import { Button, Card, ErrorBox, fmtDate, go, H1, Header, Loading, Muted, Row, Screen } from '@/shared/ui';
 import { StatusBadge } from '@/modules/exam-bank/components/badges';
+import { Button, Card, ErrorBox, fmtDate, go, H1, Header, Loading, Muted, Row, Screen } from '@/shared/ui';
 import { useLoad } from '@/shared/hooks';
-import { colors } from '@/shared/theme';
 
-/** API 13 chi tiết · API 14 sửa · API 15 xoá. */
+/** API 13 chi tiết · API 14 sửa · API 15 xoá. Chỉ sửa/xoá được khi phiên còn “Chờ duyệt”. */
 export default function SubmissionDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: s, error, loading, reload } = useLoad(() => getMySubmission(id), [id]);
 
-  const doDelete = async () => { await deleteMySubmission(id); router.back(); };
+  const doDelete = async () => {
+    try { await deleteMySubmission(id); router.back(); }
+    catch (e) { Platform.OS === 'web' ? window.alert((e as Error).message) : Alert.alert('Không xoá được', (e as Error).message); }
+  };
   const confirmDelete = () => {
     if (Platform.OS === 'web') { if (window.confirm('Xoá phiên gửi này?')) doDelete(); return; }
     Alert.alert('Xoá phiên gửi', 'Bạn chắc chắn muốn xoá? Thao tác không thể hoàn tác.', [
@@ -22,7 +24,9 @@ export default function SubmissionDetail() {
 
   if (loading && !s) return <><Header title="Chi tiết phiên" /><Loading /></>;
   if (!s) return <Screen><Header title="Chi tiết phiên" /><ErrorBox message={error ?? 'Không tải được'} onRetry={reload} /></Screen>;
-  const editable = s.status !== 'approved';
+  const editable = s.status === 'pending';
+  const approved = s.questions.filter((q) => q.status === 'approved').length;
+  const rejected = s.questions.filter((q) => q.status === 'rejected').length;
   return (
     <Screen footer={editable ? (
       <Row style={{ justifyContent: 'space-between' }}>
@@ -34,20 +38,17 @@ export default function SubmissionDetail() {
       <Card>
         <Row style={{ justifyContent: 'space-between' }}><StatusBadge status={s.status} /><Muted>{fmtDate(s.createdAt)}</Muted></Row>
         <H1>{s.title}</H1>
-        <Muted>{s.subject} · {s.questions.length} câu hỏi</Muted>
+        {s.content ? <Muted>{s.content}</Muted> : null}
+        <Muted>{[s.subject, s.className, s.semesterName].filter(Boolean).join(' · ')}</Muted>
+        <Muted>{s.questions.length} câu hỏi{s.status === 'resolved' ? ` · ${approved} được chọn · ${rejected} bị từ chối` : ''}</Muted>
       </Card>
-      {s.status === 'rejected' ? (
-        <Card style={{ backgroundColor: colors.dangerSoft, borderColor: colors.danger }}>
-          <Text style={{ fontWeight: '700', color: colors.danger }}>Giảng viên đã từ chối</Text>
-          <Text style={{ color: colors.text }}>{s.rejectReason}</Text>
-          <Muted>Hãy chỉnh sửa theo góp ý rồi gửi lại.</Muted>
-        </Card>
-      ) : null}
-      {s.status === 'approved' ? <Muted>Phiên đã được duyệt nên không thể sửa hoặc xoá. Chạm câu hỏi để xem thống kê & đánh giá.</Muted> : null}
-      {s.questions.map((q, i) => <View key={q.id} style={{ gap: 6 }}>
+      {!editable ? <Muted>{s.status === 'reviewing' ? 'Giảng viên đang duyệt phiên này nên không thể sửa hoặc xoá.' : 'Phiên đã được xử lý nên không thể sửa hoặc xoá.'} Chạm câu hỏi để xem thống kê & đánh giá.</Muted> : null}
+      {s.questions.map((q, i) => (
+        <View key={q.id} style={{ gap: 6 }}>
           <QuestionCard q={q} index={i} showAnswer showSource showStatus />
           {q.status === 'needs-edit' ? <Muted>🔒 Giảng viên đang xem xét câu này — điểm cộng của bạn được bảo lưu cho tới khi có quyết định giữ/loại.</Muted> : null}
-        </View>)}
+        </View>
+      ))}
     </Screen>
   );
 }
