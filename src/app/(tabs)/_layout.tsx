@@ -19,7 +19,6 @@ export default function TabsLayout() {
         <Tabs tabBar={() => null} screenOptions={{ sceneStyle: { backgroundColor: 'transparent' } }}>
           <Tabs.Screen name="index" options={page('Trang chủ')} />
           <Tabs.Screen name="social" options={page('Bảng tin')} />
-          <Tabs.Screen name="search" options={page('Tìm kiếm')} />
           <Tabs.Screen name="contribute" options={page('Đóng góp câu hỏi')} />
           <Tabs.Screen name="review" options={page('Duyệt câu hỏi')} />
           <Tabs.Screen name="games" options={page('Trò chơi dự đoán')} />

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { FeedScreen } from '../../screens/FeedScreen';
+import { FeedScreen } from '@/modules/social-score/screens/FeedScreen';
 
 export default function SocialFeedRoute() {
   return (
