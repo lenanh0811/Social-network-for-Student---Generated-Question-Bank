@@ -1,1 +1,1 @@
-export { default } from '@/modules/social-score/screens/PostRouteScreen';
+// export { default } from '@/modules/social-score/screens/PostRouteScreen';
