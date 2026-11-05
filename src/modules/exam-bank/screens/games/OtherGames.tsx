@@ -11,7 +11,7 @@ const Note = ({ children }: { children: string }) => <Text style={{ color: color
 const Err = ({ children }: { children: string }) => <Text style={{ color: colors.danger, fontWeight: '600' }}>{children}</Text>;
 
 /** Minigame 3 – Đoán mức độ ưa thích của bạn học cho từng câu trong phiên đề xuất (đúng ≥50% → +0.25 điểm). */
-export function Mg3() {
+export function Mg3({ onClose }: { onClose?: () => void }) {
   const { data, loading, error, reload } = useLoad(() => listMySubmissions());
   const [sid, setSid] = useState<string>();
   const [guess, setGuess] = useState<Record<string, number>>({});
@@ -25,7 +25,7 @@ export function Mg3() {
     catch (e) { setMsg({ ok: false, t: (e as Error).message }); } finally { setBusy(false); }
   };
   return (
-    <GameShell no={3} title="Đoán mức độ yêu thích" icon="heart" reward="Đúng từ 50% → +0.25 điểm"
+    <GameShell onClose={onClose} color="#E0384F" no={3} title="Đoán mức độ yêu thích" icon="heart" reward="Đúng từ 50% → +0.25 điểm"
       rule="Trong đúng 10 câu hỏi của phiên đề xuất, hãy dự đoán mức độ ưa thích (1–5★) của bạn học với từng câu. Nếu đúng từ 50% trở lên bạn được +0.25 điểm.">
       {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : !data?.length ? <Empty text="Bạn chưa có phiên đề xuất nào." /> : (
         <>
@@ -51,7 +51,7 @@ export function Mg3() {
 }
 
 /** Minigame 5 – Báo câu lỗi: rate 0★ (API 19). Nếu câu được chọn vào ngân hàng, chủ câu bị bớt điểm, người báo được cộng (thông báo cuối kỳ). */
-export function Mg5() {
+export function Mg5({ onClose }: { onClose?: () => void }) {
   const { data, loading, error, reload } = useLoad(listReportableQuestions);
   const [qid, setQid] = useState<string>();
   const [reason, setReason] = useState('');
@@ -63,7 +63,7 @@ export function Mg5() {
     catch (e) { setMsg({ ok: false, t: (e as Error).message }); } finally { setBusy(false); }
   };
   return (
-    <GameShell no={5} title="Báo câu lỗi" icon="bug" reward="Báo đúng → cộng điểm (cuối kỳ)"
+    <GameShell onClose={onClose} color="#D32F2F" no={5} title="Báo câu lỗi" icon="bug" reward="Báo đúng → cộng điểm (cuối kỳ)"
       rule="Phát hiện câu hỏi bị lỗi: đánh giá 0★. Nếu câu đó được chọn vào ngân hàng đề thì chủ câu bị bớt điểm và bạn được cộng điểm (bạn chỉ được thông báo gần cuối kỳ).">
       {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : (
         <>
@@ -85,7 +85,7 @@ export function Mg5() {
 }
 
 /** Minigame 6 – Dự đoán câu do LLM tạo (≥7 câu, mỗi người một lần mỗi phiên chơi). */
-export function Mg6() {
+export function Mg6({ onClose }: { onClose?: () => void }) {
   const { data, loading, error, reload } = useLoad(getLlmRound);
   const [pick, setPick] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -98,7 +98,7 @@ export function Mg6() {
   };
   const done = data?.submitted;
   return (
-    <GameShell no={6} title="Đâu là câu của LLM?" icon="hardware-chip" reward="Đúng hết & sớm nhất → cộng điểm"
+    <GameShell onClose={onClose} color="#7B4DD6" no={6} title="Đâu là câu của LLM?" icon="hardware-chip" reward="Đúng hết & sớm nhất → cộng điểm"
       rule="Bạn thấy tối thiểu 7 câu hỏi và đoán câu nào do LLM tạo ra. Trả lời đúng hết và sớm nhất sẽ được cộng điểm. Mỗi bạn chỉ được trả lời một lần cho một phiên chơi.">
       {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : (
         <>

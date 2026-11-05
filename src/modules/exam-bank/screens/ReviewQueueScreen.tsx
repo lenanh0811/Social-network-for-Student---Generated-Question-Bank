@@ -24,7 +24,7 @@ export default function Review() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Screen
+      <Screen wide
         onRefresh={reload} refreshing={loading && !!data}
         footer={tab === 'pending' && sel.length ? (
           rejecting ? (
