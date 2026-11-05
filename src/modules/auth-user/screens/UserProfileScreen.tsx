@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { Text } from 'react-native';
 import { getUser } from '@/modules/auth-user/api/client';
 import { Avatar, InfoRow } from '@/modules/auth-user/components/AuthUi';
+import { RelationshipPanel } from '@/modules/relationship-privacy/components/RelationshipPanel';
 import { useLoad } from '@/shared/hooks';
 import { colors } from '@/shared/theme';
 import { Badge, Button, Card, ErrorBox, go, H1, Header, Loading, Screen } from '@/shared/ui';
@@ -24,8 +25,10 @@ export default function UserProfileScreen() {
             <Badge label={u.role === 'lecturer' ? 'Giảng viên' : 'Sinh viên'} fg={colors.primary} bg={colors.primarySoft} />
             {u.bio ? <Text style={{ color: colors.text, textAlign: 'center' }}>{u.bio}</Text> : null}
           </Card>
+          <RelationshipPanel userId={u.id} name={u.name} role={u.role} />
           <Card>
             <InfoRow icon="business-outline" label="Khoa / Trường" value={u.faculty} />
+            {u.role === 'student' ? <InfoRow icon="school-outline" label="Chuyên ngành" value={u.major} /> : null}
             {u.role === 'student' ? <InfoRow icon="people-outline" label="Lớp" value={u.className} /> : null}
           </Card>
           <Button title="Xem câu hỏi đã đóng góp" variant="outline" icon="albums-outline" onPress={() => go(`/exam-bank/user/${u.id}`)} />

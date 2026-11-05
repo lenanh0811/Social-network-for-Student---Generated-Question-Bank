@@ -34,6 +34,7 @@
     "test:api": "node --test tests/api-contract.test.mjs",
     "lint": "expo lint",
     "test:auth": "node --test tests/auth-api.test.mjs",
+    "test:relationship": "node --test tests/relationship-api.test.mjs",
     "dev": "expo start --web --port 3000",
     "demo": "EXPO_PUBLIC_API_URL= expo start --web --port 3000 -c"
   },

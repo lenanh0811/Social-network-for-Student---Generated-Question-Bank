@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { isMock, verify } from '@/modules/auth-user/api/client';
+import { isMock, resendVerify, verify } from '@/modules/auth-user/api/client';
 import { MOCK_VERIFY_CODE } from '@/modules/auth-user/api/mockDb';
 import { AuthError } from '@/modules/auth-user/api/types';
 import { checkCode, checkEmail } from '@/modules/auth-user/api/validate';
@@ -14,6 +14,21 @@ export default function VerifyScreen() {
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const [resent, setResent] = useState('');
+
+  /** POST /auth/admin/resend-verify — 409 nếu mã cũ còn hiệu lực. */
+  const resend = async () => {
+    const eErr = checkEmail(email);
+    setEmailError(eErr);
+    if (eErr) return;
+    setResent('');
+    try {
+      await resendVerify(email.trim().toLowerCase());
+      setResent('Đã gửi lại mã mới, hãy kiểm tra email.');
+    } catch (e) {
+      setResent(e instanceof AuthError && e.status === 409 ? 'Mã trước vẫn còn hiệu lực, vui lòng đợi rồi thử lại.' : (e as Error).message);
+    }
+  };
 
   const submit = async (value = code) => {
     const eErr = checkEmail(email);
@@ -55,6 +70,8 @@ export default function VerifyScreen() {
         <Muted style={{ textAlign: 'center' }}>Không thấy email? Hãy kiểm tra thư mục Spam/Quảng cáo.</Muted>
       )}
       <Button title="Xác thực" icon="shield-checkmark-outline" onPress={() => submit()} loading={loading} disabled={code.length < 6} />
+      {resent ? <Muted style={{ textAlign: 'center' }}>{resent}</Muted> : null}
+      <Row style={{ justifyContent: 'center' }}><Muted>Chưa nhận được mã?</Muted><TextLink title="Gửi lại mã" onPress={resend} /></Row>
       <TextLink title="← Quay lại đăng nhập" onPress={() => router.replace('/login')} />
     </AuthShell>
   );

@@ -1,37 +1,37 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { deleteMe, isMock, updateMe } from '@/modules/auth-user/api/client';
-import { AuthError } from '@/modules/auth-user/api/types';
-import { checkName, collect } from '@/modules/auth-user/api/validate';
-import { Avatar, Notice, PasswordField } from '@/modules/auth-user/components/AuthUi';
+import { deleteMe, updateMe } from '@/modules/auth-user/api/client';
+import { AuthError, type Gender } from '@/modules/auth-user/api/types';
+import { checkDate, checkName, collect } from '@/modules/auth-user/api/validate';
+import { Avatar, InfoRow, Notice } from '@/modules/auth-user/components/AuthUi';
 import { useAuth } from '@/shared/context/Auth';
 import { colors } from '@/shared/theme';
-import { Button, Card, Field, H2, Header, Muted, Screen } from '@/shared/ui';
+import { Button, Card, Field, H2, Header, Muted, Screen, Segmented } from '@/shared/ui';
 
-/** PUT /users/me + DELETE /users/me */
+/** PUT /users/me (full_name, bio, gender, date_of_birth) + DELETE /users/me */
 export default function EditProfileScreen() {
   const { user, role, setUser } = useAuth();
-  const [f, setF] = useState({
-    fullName: user.name, studentId: user.studentId ?? '', faculty: user.faculty ?? '',
-    className: user.className ?? '', phone: user.phone ?? '', bio: user.bio ?? '',
-  });
+  const [f, setF] = useState({ fullName: user.name, bio: user.bio ?? '', dateOfBirth: user.dateOfBirth ?? '' });
+  const [gender, setGender] = useState<Gender | ''>(user.gender ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof f) => (v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const save = async () => {
-    const errs = collect({ fullName: checkName(f.fullName), bio: f.bio.length > 300 ? 'Giới thiệu tối đa 300 ký tự' : undefined });
+    const errs = collect({
+      fullName: checkName(f.fullName),
+      dateOfBirth: checkDate(f.dateOfBirth.trim()),
+      bio: f.bio.length > 300 ? 'Giới thiệu tối đa 300 ký tự' : undefined,
+    });
     setErrors(errs);
     setFormError('');
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      const trim = (v: string) => v.trim() || undefined;
       setUser(await updateMe({
-        fullName: f.fullName, studentId: trim(f.studentId), faculty: trim(f.faculty),
-        className: trim(f.className), phone: trim(f.phone), bio: trim(f.bio),
+        fullName: f.fullName, bio: f.bio.trim(), gender: gender || undefined, dateOfBirth: f.dateOfBirth.trim() || undefined,
       }));
       router.back();
     } catch (e) {
@@ -47,35 +47,43 @@ export default function EditProfileScreen() {
       <Header title="Chỉnh sửa hồ sơ" />
       <Card style={{ alignItems: 'center' }}>
         <Avatar name={f.fullName || user.name} size={80} />
-        <Muted>{user.email} · không thể thay đổi email</Muted>
+        <Muted>{user.email}</Muted>
       </Card>
       {formError ? <Notice>{formError}</Notice> : null}
       <Card>
         <Field label="Họ và tên *" value={f.fullName} onChangeText={set('fullName')} error={errors.fullName} />
-        {[[role === 'student' ? 'Mã số sinh viên' : 'Mã cán bộ', f.studentId], ['Khoa / Trường', f.faculty], ['Lớp', f.className]].map(([label, value]) =>
-          value ? <Muted key={label}>{label}: <Muted style={{ fontWeight: '700' }}>{value}</Muted></Muted> : null)}
-        <Muted>Mã số, khoa và lớp do nhà trường quản lý nên không chỉnh sửa tại đây.</Muted>
+        <View style={{ gap: 6 }}>
+          <Muted style={{ fontWeight: '600', color: colors.text }}>Giới tính</Muted>
+          <Segmented value={gender} onChange={setGender} options={[{ value: 'MALE', label: 'Nam' }, { value: 'FEMALE', label: 'Nữ' }]} />
+        </View>
+        <Field label="Ngày sinh" value={f.dateOfBirth} onChangeText={set('dateOfBirth')} error={errors.dateOfBirth} placeholder="YYYY-MM-DD" maxLength={10} keyboardType="numbers-and-punctuation" />
         <Field label={`Giới thiệu (${f.bio.length}/300)`} value={f.bio} onChangeText={set('bio')} error={errors.bio} multiline placeholder="Đôi dòng về bạn…" />
       </Card>
-      {isMock ? <DeleteAccount /> : null}
+      <Card>
+        <H2>Thông tin do nhà trường quản lý</H2>
+        <Muted>Liên hệ phòng đào tạo nếu các thông tin dưới đây chưa đúng.</Muted>
+        <InfoRow icon="id-card-outline" label={role === 'lecturer' ? 'Mã cán bộ' : 'MSSV'} value={user.code} />
+        <InfoRow icon="business-outline" label="Khoa / Trường" value={user.faculty} />
+        {role === 'student' ? <InfoRow icon="school-outline" label="Chuyên ngành" value={user.major} /> : null}
+        {role === 'student' ? <InfoRow icon="people-outline" label="Lớp" value={user.className} /> : null}
+      </Card>
+      <DeleteAccount />
       <View style={{ height: 40 }} />
     </Screen>
   );
 }
 
-/** Vùng nguy hiểm: xoá tài khoản cần nhập lại mật khẩu. */
+/** Vùng nguy hiểm: DELETE /users/me (Swagger không yêu cầu mật khẩu => xác nhận 2 bước). */
 function DeleteAccount() {
   const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const confirm = async () => {
-    if (!password) return setError('Nhập mật khẩu để xác nhận');
     setLoading(true);
     setError('');
     try {
-      await deleteMe(password); // xoá phiên => guard đưa về /login
+      await deleteMe(); // xoá phiên => guard đưa về /login
     } catch (e) {
       setError((e as Error).message);
       setLoading(false);
@@ -85,15 +93,13 @@ function DeleteAccount() {
   return (
     <Card style={{ borderColor: colors.dangerSoft }}>
       <H2>Xoá tài khoản</H2>
-      <Muted>Toàn bộ hồ sơ, bài viết và câu hỏi đóng góp của bạn sẽ bị xoá vĩnh viễn.</Muted>
+      <Muted>Hồ sơ của bạn sẽ bị vô hiệu hoá và xoá khỏi hệ thống. Hành động này không thể hoàn tác.</Muted>
+      {error ? <Notice>{error}</Notice> : null}
       {open ? (
-        <>
-          <PasswordField label="Mật khẩu hiện tại" value={password} onChangeText={setPassword} error={error} />
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}><Button title="Huỷ" variant="outline" onPress={() => { setOpen(false); setPassword(''); setError(''); }} /></View>
-            <View style={{ flex: 1 }}><Button title="Xoá vĩnh viễn" variant="danger" icon="trash-outline" onPress={confirm} loading={loading} /></View>
-          </View>
-        </>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flex: 1 }}><Button title="Huỷ" variant="outline" onPress={() => setOpen(false)} /></View>
+          <View style={{ flex: 1 }}><Button title="Xác nhận xoá" variant="danger" icon="trash-outline" onPress={confirm} loading={loading} /></View>
+        </View>
       ) : (
         <Button title="Xoá tài khoản" variant="outline" icon="trash-outline" onPress={() => setOpen(true)} />
       )}

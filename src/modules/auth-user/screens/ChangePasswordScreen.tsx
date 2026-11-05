@@ -51,7 +51,7 @@ export default function ChangePasswordScreen() {
         <PasswordField label="Mật khẩu mới" value={f.next} onChangeText={set('next')} error={errors.next} autoComplete="new-password" textContentType="newPassword" />
         <PasswordStrength value={f.next} />
         <PasswordField label="Nhập lại mật khẩu mới" value={f.confirm} onChangeText={set('confirm')} error={errors.confirm} autoComplete="new-password" onSubmitEditing={submit} />
-        <Muted>Mật khẩu tối thiểu 8 ký tự, gồm cả chữ và số.</Muted>
+        <Muted>Mật khẩu tối thiểu 8 ký tự, không chứa khoảng trắng. Nên kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.</Muted>
         <Button title="Cập nhật mật khẩu" icon="key-outline" onPress={submit} loading={loading} />
       </Card>
     </Screen>

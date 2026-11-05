@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const me = await authApi.getMe();
         if (alive) setUser(me);
-        void authApi.registerDevice(); // POST /devices/register cho phiên được khôi phục
       } catch {
         if (alive) setUser(null);
       }

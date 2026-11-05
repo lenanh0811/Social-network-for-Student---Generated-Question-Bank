@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { isMock } from '@/modules/auth-user/api/client';
+import { canSelfRegister, isMock } from '@/modules/auth-user/api/client';
 import { DEMO_ACCOUNTS } from '@/modules/auth-user/api/mockDb';
 import { AuthError } from '@/modules/auth-user/api/types';
 import { checkEmail, collect } from '@/modules/auth-user/api/validate';
@@ -35,14 +35,25 @@ export default function LoginScreen() {
     }
   };
 
+  // 403 USER_NOT_VERIFIED: chỉ chế độ demo mới có màn nhập mã (API verify của server là API admin).
+  const notVerified = formError?.status === 403 && /VERIFIED/.test(`${formError.code} ${formError.message}`);
   return (
     <AuthShell
       title="Đăng nhập"
       subtitle="Chào mừng bạn quay lại! Đăng nhập để tiếp tục học cùng bạn bè."
-      footer={<Muted style={{ fontSize: 13, textAlign: 'center' }}>Dùng tài khoản do nhà trường cấp. Quên mật khẩu hãy liên hệ quản trị viên.</Muted>}
+      footer={canSelfRegister
+        ? <Row><Muted style={{ fontSize: 14 }}>Chưa có tài khoản?</Muted><TextLink title="Đăng ký ngay" onPress={() => router.push('/register')} /></Row>
+        : <Muted style={{ fontSize: 14, textAlign: 'center' }}>Tài khoản do nhà trường cấp. Liên hệ phòng đào tạo nếu bạn chưa có tài khoản.</Muted>}
     >
       {params.verified ? <Notice tone="success">Xác thực email thành công. Hãy đăng nhập để bắt đầu.</Notice> : null}
-      {formError ? <Notice tone="danger">{formError.message}</Notice> : null}
+      {formError ? (
+        <Notice
+          tone={notVerified ? 'info' : 'danger'}
+          action={notVerified && canSelfRegister ? <TextLink title="Nhập mã xác thực →" onPress={() => router.push({ pathname: '/verify', params: { email: email.trim().toLowerCase() } })} /> : undefined}
+        >
+          {formError.code === '9990' ? 'Email hoặc mật khẩu không đúng.' : formError.message}
+        </Notice>
+      ) : null}
       <Field
         label="Email" value={email} onChangeText={setEmail} error={errors.email}
         placeholder="ten.ho@sis.hust.edu.vn" keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress"
