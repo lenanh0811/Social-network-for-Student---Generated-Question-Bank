@@ -1,15 +1,17 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from '@/shared/context/Auth';
+import { screenOptions } from '@/shared/ui';
 
 export default function RootLayout() {
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#f0f2f5' } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="create" options={{ presentation: 'modal', contentStyle: { backgroundColor: '#fff' } }} />
-        <Stack.Screen name="posts/[id]" />
+    <AuthProvider>
+      <StatusBar style="light" />
+      <Stack screenOptions={screenOptions('')}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="create" options={{ headerShown: false, presentation: 'modal', contentStyle: { backgroundColor: '#fff' } }} />
+        <Stack.Screen name="posts/[id]" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }

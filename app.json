@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "CongNgheWeb",
-    "slug": "congngheweb",
-    "scheme": "congngheweb",
+    "name": "QuizHub",
+    "slug": "quizhub",
+    "scheme": "quizhub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
