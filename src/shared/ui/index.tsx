@@ -48,16 +48,16 @@ export const Header = ({ title }: { title: string }) => <Stack.Screen options={s
 
 const HEADER_H = Platform.OS === 'web' ? 72 : 108;
 
-export function Screen({ children, onRefresh, refreshing, footer, noHeader }: {
-  children: ReactNode; onRefresh?: () => void; refreshing?: boolean; footer?: ReactNode; noHeader?: boolean;
+export function Screen({ children, onRefresh, refreshing, footer, noHeader, wide }: {
+  children: ReactNode; onRefresh?: () => void; refreshing?: boolean; footer?: ReactNode; noHeader?: boolean; wide?: boolean;
 }) {
   return (
     <GlassBackdrop>
       <ScrollView
-        contentContainerStyle={[s.screen, { paddingTop: (noHeader ? (Platform.OS === 'web' ? 14 : 54) + 56 : HEADER_H) + space.md }]} keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[s.screen, wide && { paddingHorizontal: 24 }, { paddingTop: (noHeader ? (Platform.OS === 'web' ? 14 : 54) + 56 : HEADER_H) + space.md }]} keyboardShouldPersistTaps="handled"
         refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primary} progressViewOffset={HEADER_H} /> : undefined}
       >
-        <View style={s.col}>{children}</View>
+        <View style={[s.col, wide && { maxWidth: '100%' }]}>{children}</View>
       </ScrollView>
       {footer ? (
         <Glass strong style={s.footer}><View style={s.col}>{footer}</View></Glass>

@@ -8,7 +8,7 @@ import { colors } from '@/shared/theme';
 export default function Profile() {
   const { user, role, setRole } = useAuth();
   return (
-    <Screen>
+    <Screen wide>
       <Card>
         <Row>
           <Ionicons name="person-circle" size={56} color={colors.primary} />

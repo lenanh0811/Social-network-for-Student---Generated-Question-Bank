@@ -1,18 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { listNeedsEdit, listPendingSessions } from '@/modules/exam-bank/api/client';
 import { useAuth } from '@/shared/context/Auth';
 import { useLoad } from '@/shared/hooks';
 import { MENU_ITEMS } from '@/shared/menu';
 import { colors } from '@/shared/theme';
-import { Card, go, H1, H2, Muted, Row, Screen } from '@/shared/ui';
+import { Badge, Card, go, H1, H2, Muted, Row, Screen } from '@/shared/ui';
 
 /** Trang chủ theo vai trò. Các module khác bổ sung khối nội dung của mình tại đây. */
 export default function Home() {
   const { user, role } = useAuth();
   const shortcuts = MENU_ITEMS.filter((i) => i.href !== '/' && i.href !== '/profile' && (!i.roles || i.roles.includes(role)));
   return (
-    <Screen>
+    <Screen wide>
       <Card style={{ paddingVertical: 28 }}>
         <Ionicons name={role === 'lecturer' ? 'ribbon' : 'school'} size={40} color={colors.primary} />
         <Text style={{ color: colors.muted, fontWeight: '600' }}>Xin chào{role === 'lecturer' ? ' giảng viên' : ''},</Text>
@@ -35,26 +35,26 @@ export default function Home() {
   );
 }
 
-/** Việc cần xử lý của giảng viên. */
+/** Việc cần xử lý của giảng viên: danh sách gọn, bấm để mở màn duyệt. */
 function LecturerTodo() {
   const pending = useLoad(listPendingSessions);
   const needs = useLoad(listNeedsEdit);
-  const stat = (n: number | undefined, label: string, icon: 'time' | 'create', color: string) => (
-    <View style={{ flexGrow: 1, flexBasis: 150 }}>
-      <Card onPress={() => go('/review')} style={{ alignItems: 'center', paddingVertical: 20 }}>
-        <Ionicons name={icon} size={24} color={color} />
-        <Text style={{ fontSize: 32, fontWeight: '800', color }}>{n ?? '–'}</Text>
-        <Muted>{label}</Muted>
-      </Card>
-    </View>
+  const item = (label: string, n: number | undefined, last?: boolean) => (
+    <Pressable onPress={() => go('/review')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
+      <Text style={{ color: colors.text, fontWeight: '600' }}>{label}</Text>
+      <Row style={{ gap: 6 }}>
+        {n ? <Badge label={String(n)} fg="#fff" bg={colors.primary} /> : <Muted>Không có</Muted>}
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </Row>
+    </Pressable>
   );
   return (
     <>
       <H2>Cần xử lý</H2>
-      <Row style={{ gap: 12 }}>
-        {stat(pending.data?.length, 'Phiên chờ duyệt', 'time', colors.warning)}
-        {stat(needs.data?.length, 'Câu “Cần edit”', 'create', colors.blue)}
-      </Row>
+      <Card style={{ padding: 0, overflow: 'hidden' }}>
+        {item('Phiên chờ duyệt', pending.data?.length)}
+        {item('Câu hỏi “Cần edit”', needs.data?.length, true)}
+      </Card>
     </>
   );
 }

@@ -22,6 +22,6 @@ export const MENU_ITEMS: MenuItem[] = [
   { label: 'Đóng góp câu hỏi', icon: 'create-outline', href: '/contribute', roles: ['student'] },
   { label: 'Duyệt câu hỏi', icon: 'shield-checkmark-outline', href: '/review', roles: ['lecturer'] },
   { label: 'Trò chơi dự đoán', icon: 'game-controller-outline', href: '/games', roles: ['student'] },
-  { label: 'Đề thi', icon: 'document-text-outline', href: '/exams' },
+  { label: 'Đề thi', icon: 'document-text-outline', href: '/exams', roles: ['lecturer'] },
   { label: 'Cá nhân', icon: 'person-outline', href: '/profile' },
 ];

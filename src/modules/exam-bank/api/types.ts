@@ -57,6 +57,8 @@ export interface LeaderboardEntry { rank: number; userId: string; name: string; 
 export interface ExamParams {
   /** random = bốc ngẫu nhiên · targeted = có chủ đích (theo chủ đề + tỉ lệ độ khó). Chỉ gồm câu single-choice. */
   mode: 'random' | 'targeted'; topics?: string[];
+  /** Yêu cầu gốc của giảng viên khi tạo đề bằng chat AI (backend có thể dùng để diễn giải). */
+  prompt?: string;
   title: string; subject: string; count: number; durationMin: number;
   mix: { easy: number; medium: number; hard: number }; // %
 }

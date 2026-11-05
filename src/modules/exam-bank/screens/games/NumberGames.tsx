@@ -21,11 +21,11 @@ function useSubmit() {
 const Msg = ({ m }: { m?: { ok: boolean; text: string } }) => m ? <Text style={{ color: m.ok ? colors.success : colors.danger, fontWeight: '600' }}>{m.text}</Text> : null;
 
 /** Minigame 1 – Đoán số lượng người tham gia đề xuất (sai số ±5%). API 28. */
-export function Mg1() {
+export function Mg1({ onClose }: { onClose?: () => void }) {
   const [v, setV] = useState('');
   const { busy, msg, run, clear } = useSubmit();
   return (
-    <GameShell no={1} title="Đoán số lượng" icon="people" reward="Đúng (±5%) → nhận điểm thưởng"
+    <GameShell onClose={onClose} color="#4472C4" no={1} title="Đoán số lượng" icon="people" reward="Đúng (±5%) → nhận điểm thưởng"
       rule="Dự đoán số sinh viên tham gia đề xuất câu hỏi trong khung thời gian của đợt. Nếu sai số trong ±5% bạn nhận điểm thưởng.">
       <Field label="Số người tham gia dự đoán" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 120" />
       <Msg m={msg} />
@@ -35,12 +35,12 @@ export function Mg1() {
 }
 
 /** Minigame 2 – Đoán số câu hỏi của mình được GV chọn, chia theo nhóm Tự làm / AI. API 29. */
-export function Mg2() {
+export function Mg2({ onClose }: { onClose?: () => void }) {
   const [self, setSelf] = useState('');
   const [ai, setAi] = useState('');
   const { busy, msg, run, clear } = useSubmit();
   return (
-    <GameShell no={2} title="Đoán tỷ lệ duyệt" icon="checkmark-done" reward="Đoán chính xác → cộng điểm"
+    <GameShell onClose={onClose} color="#1E8E4E" no={2} title="Đoán tỷ lệ duyệt" icon="checkmark-done" reward="Đoán chính xác → cộng điểm"
       rule="Dự đoán chính xác số câu hỏi của chính bạn được giảng viên chọn, tách theo hai nhóm: Tự làm và AI tạo.">
       <Row style={{ flexWrap: 'nowrap' }}>
         <View style={{ flex: 1 }}><Field label="✍️ Nhóm Tự làm" value={self} onChangeText={(t) => { setSelf(digits(t)); clear(); }} keyboardType="number-pad" placeholder="0" /></View>
@@ -53,13 +53,13 @@ export function Mg2() {
 }
 
 /** Minigame 4 – Đoán số câu hỏi trong ngân hàng đề; chỉ 3 người chính xác & sớm nhất, mỗi người đoán một lần. API 30. */
-export function Mg4() {
+export function Mg4({ onClose }: { onClose?: () => void }) {
   const [v, setV] = useState('');
   const { busy, msg, run, clear } = useSubmit();
   const { data, reload } = useLoad(listMyPredictions);
   const done = !!data?.some((p) => p.type === 'bank-size');
   return (
-    <GameShell no={4} title="Đoán quy mô ngân hàng đề" icon="library" reward="Top 3 chính xác & sớm nhất được cộng"
+    <GameShell onClose={onClose} color="#B26A00" no={4} title="Đoán quy mô ngân hàng đề" icon="library" reward="Top 3 chính xác & sớm nhất được cộng"
       rule="Dự đoán số câu hỏi có trong ngân hàng đề của môn học. Chỉ 3 người chính xác nhất và sớm nhất được cộng điểm. Mỗi người chỉ được đoán MỘT lần.">
       <Field label="Số câu trong ngân hàng" value={v} onChangeText={(t) => { setV(digits(t)); clear(); }} keyboardType="number-pad" placeholder="VD: 500" editable={!done} />
       <Msg m={done && !msg ? { ok: false, text: 'Bạn đã dùng lượt dự đoán của mình.' } : msg} />
