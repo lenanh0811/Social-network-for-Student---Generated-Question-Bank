@@ -2,13 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { approveSessions, listPendingSessions, rejectSessions } from '@/modules/exam-bank/api/client';
-import { Button, Card, Empty, ErrorBox, fmtDate, Field, go, H1, Loading, Muted, Row, Screen } from '@/shared/ui';
+import NeedsEditList from '@/modules/exam-bank/screens/NeedsEditList';
+import { Button, Card, Empty, ErrorBox, fmtDate, Field, go, H1, Loading, Muted, Row, Screen, Segmented } from '@/shared/ui';
 import { useLoad } from '@/shared/hooks';
 import { colors } from '@/shared/theme';
 
 /** API 21: hàng đợi duyệt. Duyệt/từ chối hàng loạt: API 23, 24. Chạm thẻ → chi tiết (API 22). */
 export default function Review() {
   const { data, loading, error, reload } = useLoad(listPendingSessions);
+  const [tab, setTab] = useState<'pending' | 'needs-edit'>('pending');
   const [sel, setSel] = useState<string[]>([]);
   const [reason, setReason] = useState('');
   const [rejecting, setRejecting] = useState(false);
@@ -24,7 +26,7 @@ export default function Review() {
     <View style={{ flex: 1 }}>
       <Screen
         onRefresh={reload} refreshing={loading && !!data}
-        footer={sel.length ? (
+        footer={tab === 'pending' && sel.length ? (
           rejecting ? (
             <>
               <Field label={`Lý do từ chối ${sel.length} phiên`} value={reason} onChangeText={setReason} multiline placeholder="Nêu rõ để sinh viên chỉnh sửa..." />
@@ -42,7 +44,9 @@ export default function Review() {
           )
         ) : undefined}
       >
-        <H1>Phiên chờ duyệt</H1>
+        <H1>Duyệt câu hỏi</H1>
+        <Segmented value={tab} onChange={setTab} options={[{ value: 'pending', label: 'Phiên chờ duyệt' }, { value: 'needs-edit', label: 'Cần edit' }]} />
+        {tab === 'needs-edit' ? <NeedsEditList /> : <>
         <Muted>Chọn nhiều phiên để duyệt/từ chối cùng lúc, hoặc chạm vào phiên để xem từng câu hỏi.</Muted>
         {error ? <ErrorBox message={error} onRetry={reload} /> : null}
         {loading && !data ? <Loading /> : null}
@@ -62,6 +66,7 @@ export default function Review() {
             </Row>
           </Card>
         ))}
+        </>}
       </Screen>
     </View>
   );

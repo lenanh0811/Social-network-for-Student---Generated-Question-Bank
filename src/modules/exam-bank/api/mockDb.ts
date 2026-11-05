@@ -13,8 +13,10 @@ const q = (
   difficulty: Question['difficulty'], status: Question['status'], explanation?: string,
 ): Question => ({
   id, sessionId, authorId, authorName, subject, content, options, correctIndex, topic, difficulty,
-  status, explanation, avgRating: 4.2, ratingCount: 5, answerCount: 24,
+  status, explanation, source: 'self', avgRating: 4.2, ratingCount: 5, answerCount: 24,
 });
+
+export { q as makeQuestion };
 
 export const db = {
   sessions: [
@@ -33,7 +35,7 @@ export const db = {
       authorId: 'u1', authorName: STUDENT.name, status: 'pending', createdAt: '2026-11-02T10:30:00Z',
       questions: [
         q('q3', 's2', 'u1', STUDENT.name, 'Công nghệ Web', 'Promise.all() trả về kết quả khi nào?',
-          ['Khi promise đầu tiên xong', 'Khi tất cả promise xong', 'Khi có promise lỗi', 'Ngay lập tức'], 1, 'JavaScript', 'medium', 'pending'),
+          ['Khi promise đầu tiên xong', 'Khi tất cả promise xong', 'Khi có promise lỗi', 'Ngay lập tức'], 1, 'JavaScript', 'medium', 'needs-edit'),
       ],
     },
     {
@@ -52,7 +54,7 @@ export const db = {
         q('q5', 's4', 'u2', 'Lê Thu Hà', 'Cơ sở dữ liệu', 'Khóa nào đảm bảo tính toàn vẹn tham chiếu giữa hai bảng?',
           ['Primary key', 'Foreign key', 'Unique key', 'Candidate key'], 1, 'SQL', 'easy', 'pending'),
         q('q6', 's4', 'u2', 'Lê Thu Hà', 'Cơ sở dữ liệu', 'Dạng chuẩn 3NF loại bỏ loại phụ thuộc nào?',
-          ['Phụ thuộc hàm riêng phần', 'Phụ thuộc bắc cầu', 'Phụ thuộc đa trị', 'Phụ thuộc nối'], 1, 'Chuẩn hoá', 'hard', 'pending'),
+          ['Phụ thuộc hàm riêng phần', 'Phụ thuộc bắc cầu', 'Phụ thuộc đa trị', 'Phụ thuộc nối'], 1, 'Chuẩn hoá', 'hard', 'needs-edit'),
       ],
     },
     {
@@ -76,6 +78,8 @@ export const db = {
     { id: 'p2', type: 'bank-size', value: 500, status: 'open', createdAt: '2026-11-03T00:00:00Z', targetDate: '2026-11-15' },
   ] as Prediction[],
   exams: [] as Exam[],
+  likeGuesses: {} as Record<string, number[]>,
+  llmSubmitted: {} as Record<string, boolean>,
 };
 db.answered = { q1: [2, 2, 2, 1, 0, 2], q2: [1, 1, 1, 2] };
 

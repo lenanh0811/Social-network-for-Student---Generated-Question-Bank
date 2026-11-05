@@ -1,5 +1,5 @@
 import { call } from '@/shared/api/http';
-import { approvedQuestions, db, STUDENT, uid } from '@/modules/exam-bank/api/mockDb';
+import { approvedQuestions, db, makeQuestion, STUDENT, uid } from '@/modules/exam-bank/api/mockDb';
 import type * as T from '@/modules/exam-bank/api/types';
 
 // Không có GET /questions/{id} trong đặc tả => cache câu hỏi từ các API danh sách/chi tiết.
@@ -116,7 +116,7 @@ export const approveSessions = (sessionIds: string[]) =>
     sessionIds.forEach((id) => {
       const s = findS(id);
       s.status = 'approved';
-      s.questions.forEach((x) => (x.status = 'approved'));
+      s.questions.forEach((x) => { if (x.status !== 'needs-edit') x.status = 'approved'; });
     });
   });
 /** 24 */
@@ -130,8 +130,20 @@ export const rejectSessions = (sessionIds: string[], reason: string) =>
     });
   });
 /** 25 */
-export const updateQuestion = (qid: string, patch: Partial<T.QuestionDraft>) =>
+export const updateQuestion = (qid: string, patch: Partial<T.QuestionDraft> & { status?: T.QuestionStatus }) =>
   call<T.Question>('PUT', `/questions/${qid}`, patch, () => Object.assign(findQ(qid).q, patch)).then(remember);
+
+/**
+ * Luồng duyệt theo slide 3.1 (9) – dùng PUT /questions/{id} (API 25) với trường `status`:
+ *  1) GV tích chọn câu tiềm năng → 'needs-edit' (điểm cộng của SV được bảo lưu)
+ *  2) Quyết định cuối: giữ → 'approved' (vào ngân hàng) / loại → 'rejected'.
+ */
+export const markNeedsEdit = (qids: string[]) => Promise.all(qids.map((id) => updateQuestion(id, { status: 'needs-edit' })));
+export const decideQuestion = (qid: string, keep: boolean) => updateQuestion(qid, { status: keep ? 'approved' : 'rejected' });
+/** TODO backend: GET /questions?status=needs-edit — danh sách câu đang ở trạng thái "Cần edit". */
+export const listNeedsEdit = () =>
+  call<T.Question[]>('GET', '/questions?status=needs-edit', undefined, () =>
+    db.sessions.flatMap((s) => s.questions).filter((x) => x.status === 'needs-edit')).then(remember);
 
 // ───────── 5.2.3 AI ─────────
 /** 26 – gợi ý chỉnh sửa, chưa ghi vào câu hỏi */
@@ -152,11 +164,18 @@ export const aiApply = (qid: string, s: T.AiSuggestion) =>
     Object.assign(findQ(qid).q, { content: s.content, options: s.options, correctIndex: s.correctIndex, explanation: s.explanation })).then(remember);
 
 // ───────── 5.2.4 Trò chơi ─────────
-/** 28 / 29 / 30 */
-export const submitPrediction = (type: T.PredictionType, value: number) =>
-  call<T.Prediction>('POST', `/games/prediction/${type}`, { value }, () => {
+/**
+ * 28 / 29 / 30 – gửi dự đoán.
+ * participants (MG1): đoán số người tham gia, sai số ±5%.
+ * approved-questions (MG2): extra = số câu được chọn của nhóm Tự làm / AI.
+ * bank-size (MG4): mỗi sinh viên chỉ đoán một lần.
+ */
+export const submitPrediction = (type: T.PredictionType, value: number, extra?: { self: number; ai: number }) =>
+  call<T.Prediction>('POST', `/games/prediction/${type}`, { value, ...extra }, () => {
+    if (type === 'bank-size' && db.predictions.some((x) => x.type === type)) throw new Error('Bạn đã dự đoán rồi — mỗi người chỉ được đoán một lần.');
     const p: T.Prediction = {
       id: uid('p'), type, value, status: 'open', createdAt: new Date().toISOString(),
+      detail: extra ? `Tự làm: ${extra.self} · AI: ${extra.ai}` : undefined,
       targetDate: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10),
     };
     db.predictions.unshift(p);
@@ -196,20 +215,26 @@ export const exportQuestions = (format: T.ExportFormat, subject?: string) =>
 /** 34 */
 export const generateExam = (p: T.ExamParams) =>
   call<T.Exam>('POST', '/exams/generate', p, () => {
-    const pool = approvedQuestions().filter((x) => x.subject === p.subject);
-    if (!pool.length) throw new Error(`Chưa có câu hỏi đã duyệt cho môn “${p.subject}”.`);
-    const picked: T.Question[] = [];
-    (['easy', 'medium', 'hard'] as const).forEach((d) => {
-      const want = Math.round((p.count * p.mix[d]) / 100);
-      picked.push(...pool.filter((x) => x.difficulty === d).slice(0, want));
+    let pool = approvedQuestions().filter((x) => x.subject === p.subject);
+    if (p.mode === 'targeted' && p.topics?.length) pool = pool.filter((x) => p.topics!.includes(x.topic));
+    if (!pool.length) throw new Error(`Chưa có câu hỏi đã duyệt phù hợp cho môn “${p.subject}”.`);
+    const shuffle = <A,>(a: A[]) => [...a].sort(() => Math.random() - 0.5);
+    let picked: T.Question[] = [];
+    if (p.mode === 'random') picked = shuffle(pool).slice(0, p.count);
+    else (['easy', 'medium', 'hard'] as const).forEach((d) => {
+      picked.push(...shuffle(pool.filter((x) => x.difficulty === d)).slice(0, Math.round((p.count * p.mix[d]) / 100)));
     });
     const exam: T.Exam = {
       id: uid('e'), title: p.title, subject: p.subject, durationMin: p.durationMin,
-      createdAt: new Date().toISOString(), questions: picked.length ? picked : pool.slice(0, p.count),
+      createdAt: new Date().toISOString(), questions: picked.length ? picked : shuffle(pool).slice(0, p.count),
     };
     db.exams.unshift(exam);
     return remember(exam.questions) && exam;
   });
+/** TODO backend: GET /questions/topics?subject= — các chủ đề trong ngân hàng, dùng cho sinh đề có chủ đích. */
+export const listBankTopics = (subject: string) =>
+  call<string[]>('GET', `/questions/topics?subject=${encodeURIComponent(subject)}`, undefined, () =>
+    [...new Set(approvedQuestions().filter((x) => x.subject === subject).map((x) => x.topic))]);
 /** 35 */
 export const getExam = (id: string) =>
   call<T.Exam>('GET', `/exams/${id}`, undefined, () => {
@@ -227,3 +252,28 @@ export const exportExam = (id: string, format: T.ExportFormat) =>
     return toFile(e.title.replace(/\s+/g, '-').toLowerCase(), e.questions, format);
   });
 
+
+// ───────── Minigame 3, 5, 6: CHƯA có trong đặc tả API → mock, cần backend bổ sung ─────────
+/** MG3 (đề xuất: POST /games/prediction/likes) – đoán mức ưa thích (1–5★) của bạn học cho từng câu trong phiên của mình. */
+export const submitLikeGuess = (sessionId: string, guesses: number[]) =>
+  call<void>('POST', '/games/prediction/likes', { sessionId, guesses }, () => {
+    if (db.likeGuesses[sessionId]) throw new Error('Phiên này bạn đã dự đoán rồi.');
+    db.likeGuesses[sessionId] = guesses;
+  });
+export const hasLikeGuess = (sessionId: string) => !!db.likeGuesses[sessionId];
+/** MG5 – báo câu lỗi dùng POST /questions/{id}/rate với 0★ (API 19), kèm lý do. Danh sách câu để báo: cần endpoint. */
+export const listReportableQuestions = () =>
+  call<T.Question[]>('GET', '/games/reportable-questions', undefined, () => approvedQuestions()).then((r) => { r.forEach((x) => cache.set(x.id, x)); return r; });
+export const reportQuestion = (qid: string, reason: string) => rateQuestion(qid, 0, reason);
+/** MG6 (đề xuất: GET /games/llm-round, POST /games/llm-round/{id}) – ≥7 câu, đoán câu nào do LLM tạo. */
+const LLM_SET = ['TCP khác UDP ở điểm nào?', 'DNS dùng để làm gì?', 'HTTP/2 cải thiện gì so với HTTP/1.1?', 'CSS Grid khác Flexbox thế nào?', 'JWT gồm mấy phần?', 'Index trong CSDL giúp gì?', 'Event loop trong JavaScript là gì?', 'REST là viết tắt của gì?'];
+export const getLlmRound = () =>
+  call<T.LlmRound>('GET', '/games/llm-round', undefined, () => ({
+    roundId: 'round1', submitted: !!db.llmSubmitted.round1,
+    questions: LLM_SET.map((c, i) => makeQuestion(`g${i + 1}`, 'sg', 'u9', 'Ẩn danh', 'Công nghệ Web', c, ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'], 0, 'Tổng hợp', 'medium', 'approved')),
+  }));
+export const submitLlmGuess = (roundId: string, questionIds: string[]) =>
+  call<void>('POST', `/games/llm-round/${roundId}`, { questionIds }, () => {
+    if (db.llmSubmitted[roundId]) throw new Error('Mỗi bạn chỉ được trả lời một lần cho một phiên chơi.');
+    db.llmSubmitted[roundId] = true;
+  });

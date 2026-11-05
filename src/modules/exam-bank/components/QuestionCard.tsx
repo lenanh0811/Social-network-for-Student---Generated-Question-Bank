@@ -8,13 +8,14 @@ import { DifficultyBadge, StatusBadge } from '@/modules/exam-bank/components/bad
 export const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /** Thẻ tóm tắt câu hỏi, bấm để mở chi tiết (trả lời / thống kê / đánh giá). */
-export function QuestionCard({ q, index, showStatus, showAnswer }: { q: Question; index?: number; showStatus?: boolean; showAnswer?: boolean }) {
+export function QuestionCard({ q, index, showStatus, showAnswer, showSource }: { q: Question; index?: number; showStatus?: boolean; showAnswer?: boolean; showSource?: boolean }) {
   return (
     <Card onPress={() => go(`/exam-bank/question/${q.id}`)}>
       <Row style={{ justifyContent: 'space-between' }}>
         <Row>
           <DifficultyBadge d={q.difficulty} />
           <Muted>{q.topic}</Muted>
+          {showSource && q.source ? <Muted>· {q.source === 'ai' ? '🤖 AI tạo' : '✍️ Tự làm'}</Muted> : null}
         </Row>
         {showStatus ? <StatusBadge status={q.status} /> : null}
       </Row>

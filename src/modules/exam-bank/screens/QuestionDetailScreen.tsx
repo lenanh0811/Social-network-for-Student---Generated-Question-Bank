@@ -54,7 +54,7 @@ function AnswerTab({ id, options }: { id: string; options: string[] }) {
         const isWrong = res && pick === i && !res.correct;
         return (
           <Pressable key={i} disabled={!!res} onPress={() => setPick(i)} style={{
-            flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 2, backgroundColor: '#fff',
+            flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 2, backgroundColor: 'rgba(255,255,255,0.65)',
             borderColor: isCorrect ? colors.success : isWrong ? colors.danger : pick === i ? colors.primary : colors.border,
           }}>
             <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: pick === i ? colors.primary : colors.bg }}>

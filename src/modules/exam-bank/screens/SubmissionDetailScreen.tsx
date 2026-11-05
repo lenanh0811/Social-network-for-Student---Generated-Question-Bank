@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, Platform, Text } from 'react-native';
+import { Alert, Platform, Text, View } from 'react-native';
 import { deleteMySubmission, getMySubmission } from '@/modules/exam-bank/api/client';
 import { QuestionCard } from '@/modules/exam-bank/components/QuestionCard';
 import { Button, Card, ErrorBox, fmtDate, go, H1, Header, Loading, Muted, Row, Screen } from '@/shared/ui';
@@ -44,7 +44,10 @@ export default function SubmissionDetail() {
         </Card>
       ) : null}
       {s.status === 'approved' ? <Muted>Phiên đã được duyệt nên không thể sửa hoặc xoá. Chạm câu hỏi để xem thống kê & đánh giá.</Muted> : null}
-      {s.questions.map((q, i) => <QuestionCard key={q.id} q={q} index={i} showAnswer />)}
+      {s.questions.map((q, i) => <View key={q.id} style={{ gap: 6 }}>
+          <QuestionCard q={q} index={i} showAnswer showSource showStatus />
+          {q.status === 'needs-edit' ? <Muted>🔒 Giảng viên đang xem xét câu này — điểm cộng của bạn được bảo lưu cho tới khi có quyết định giữ/loại.</Muted> : null}
+        </View>)}
     </Screen>
   );
 }

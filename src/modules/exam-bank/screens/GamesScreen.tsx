@@ -1,52 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { getLeaderboard, listMyPredictions, submitPrediction } from '@/modules/exam-bank/api/client';
+import { getLeaderboard, listMyPredictions } from '@/modules/exam-bank/api/client';
 import type { PredictionType } from '@/modules/exam-bank/api/types';
 import { Badge, Button, Card, Empty, ErrorBox, Field, fmtDate, H1, H2, Loading, Muted, Row, Screen, Segmented } from '@/shared/ui';
+import { Mg1, Mg2, Mg4 } from '@/modules/exam-bank/screens/games/NumberGames';
+import { Mg3, Mg5, Mg6 } from '@/modules/exam-bank/screens/games/OtherGames';
 import { useAuth } from '@/shared/context/Auth';
 import { useLoad } from '@/shared/hooks';
 import { colors } from '@/shared/theme';
 
-const GAMES: { type: PredictionType; title: string; desc: string; icon: keyof typeof Ionicons.glyphMap; hint: string }[] = [
-  { type: 'participants', title: 'Số người tham gia', desc: 'Dự đoán số sinh viên đóng góp câu hỏi trong kỳ.', icon: 'people', hint: 'VD: 120' },
-  { type: 'approved-questions', title: 'Số câu hỏi được duyệt', desc: 'Dự đoán tổng số câu hỏi được giảng viên duyệt.', icon: 'checkmark-done', hint: 'VD: 350' },
-  { type: 'bank-size', title: 'Quy mô ngân hàng câu hỏi', desc: 'Dự đoán tổng số câu hỏi của ngân hàng.', icon: 'library', hint: 'VD: 500' },
+const GAMES: { type: PredictionType; title: string }[] = [
+  { type: 'participants', title: 'MG1 · Số người tham gia' },
+  { type: 'approved-questions', title: 'MG2 · Số câu được duyệt' },
+  { type: 'bank-size', title: 'MG4 · Quy mô ngân hàng' },
 ];
 type Tab = 'play' | 'mine' | 'board';
 
-/** Minigame dự đoán: gửi dự đoán (28–30) · lịch sử (31) · bảng xếp hạng (32). */
+/** 6 minigame (slide 3.1): MG1/2/4 dùng API 28–30; MG3/5/6 chưa có trong đặc tả. Lịch sử (31) · xếp hạng (32). */
 export default function Games() {
   const [tab, setTab] = useState<Tab>('play');
   return (
     <Screen>
       <H1>Trò chơi dự đoán</H1>
       <Segmented value={tab} onChange={setTab} options={[{ value: 'play', label: 'Chơi' }, { value: 'mine', label: 'Của tôi' }, { value: 'board', label: 'Xếp hạng' }]} />
-      {tab === 'play' ? GAMES.map((g) => <PredictCard key={g.type} g={g} />) : tab === 'mine' ? <Mine /> : <Board />}
+      {tab === 'play' ? (
+        <>
+          <Mg1 /><Mg2 /><Mg3 /><Mg4 /><Mg5 /><Mg6 />
+        </>
+      ) : tab === 'mine' ? <Mine /> : <Board />}
     </Screen>
-  );
-}
-
-function PredictCard({ g }: { g: (typeof GAMES)[number] }) {
-  const [v, setV] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<string>();
-  const [err, setErr] = useState<string>();
-  const n = Number(v);
-  const valid = v.trim() !== '' && Number.isInteger(n) && n >= 0;
-  const send = async () => {
-    setBusy(true); setErr(undefined);
-    try { const p = await submitPrediction(g.type, n); setDone(`Đã ghi nhận dự đoán ${p.value}. Kết quả chốt ngày ${fmtDate(p.targetDate)}.`); setV(''); }
-    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
-  };
-  return (
-    <Card>
-      <Row><Ionicons name={g.icon} size={22} color={colors.primary} /><H2>{g.title}</H2></Row>
-      <Muted>{g.desc}</Muted>
-      <Field label="Dự đoán của bạn" value={v} onChangeText={(t) => { setV(t.replace(/\D/g, '')); setDone(undefined); }} keyboardType="number-pad" placeholder={g.hint} error={err} />
-      {done ? <Text style={{ color: colors.success, fontWeight: '600' }}>{done}</Text> : null}
-      <Button title="Gửi dự đoán" icon="flash" disabled={!valid} loading={busy} onPress={send} />
-    </Card>
   );
 }
 
@@ -68,6 +51,7 @@ function Mine() {
           {p.actual !== undefined ? <View><Muted>Thực tế</Muted><Text style={{ fontSize: 22, fontWeight: '800', color: colors.blue }}>{p.actual}</Text></View> : null}
           {p.points !== undefined ? <View><Muted>Điểm</Muted><Text style={{ fontSize: 22, fontWeight: '800', color: colors.success }}>+{p.points}</Text></View> : null}
         </Row>
+        {p.detail ? <Muted>{p.detail}</Muted> : null}
         <Muted>Chốt ngày {fmtDate(p.targetDate)}</Muted>
       </Card>
     );

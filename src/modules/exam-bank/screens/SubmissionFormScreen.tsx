@@ -20,18 +20,20 @@ export default function SubmissionForm() {
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [honest, setHonest] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getMySubmission(id).then((s) => {
       setTitle(s.title); setSubject(s.subject);
-      setQs(s.questions.map(({ content, options, correctIndex, explanation, topic, difficulty }) => ({ content, options, correctIndex, explanation, topic, difficulty })));
+      setQs(s.questions.map(({ source, content, options, correctIndex, explanation, topic, difficulty }) => ({ source: source ?? 'self', content, options, correctIndex, explanation, topic, difficulty })));
     }).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }, [id]);
 
   const submit = async () => {
     setShowErrors(true);
+    if (!honest) return notify('Vui lòng xác nhận cam kết khai báo trung thực nguồn gốc câu hỏi.');
     if (!title.trim() || qs.some((q) => validateDraft(q))) return notify('Vui lòng điền đầy đủ thông tin các câu hỏi.');
     setBusy(true);
     try {
@@ -58,9 +60,15 @@ export default function SubmissionForm() {
             <H2>Câu hỏi {i + 1}</H2>
             {qs.length > 1 ? <Ionicons name="trash-outline" size={22} color={colors.danger} onPress={() => setQs(qs.filter((_, k) => k !== i))} /> : null}
           </Row>
-          <QuestionEditor value={q} showErrors={showErrors} onChange={(d) => setQs(qs.map((x, k) => (k === i ? d : x)))} />
+          <QuestionEditor showSource value={q} showErrors={showErrors} onChange={(d) => setQs(qs.map((x, k) => (k === i ? d : x)))} />
         </Card>
       ))}
+      <Card onPress={() => setHonest(!honest)}>
+        <Row style={{ flexWrap: 'nowrap' }}>
+          <Ionicons name={honest ? 'checkbox' : 'square-outline'} size={26} color={honest ? colors.primary : colors.muted} />
+          <Muted>Tôi cam kết đã khai báo trung thực nguồn gốc (tự làm hoặc AI tạo) của từng câu hỏi.</Muted>
+        </Row>
+      </Card>
       <Button title="Thêm câu hỏi" icon="add-circle-outline" variant="outline" onPress={() => setQs([...qs, emptyDraft()])} />
     </Screen>
   );

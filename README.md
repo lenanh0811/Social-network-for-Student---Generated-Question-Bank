@@ -32,7 +32,7 @@ export { default } from '@/modules/exam-bank/screens/GamesScreen';
 ```
 
 Muốn thêm màn hình mới: (1) viết màn hình trong `modules/<tên>/screens/`, (2) thêm 1 file như trên trong `src/app/`.
-Màn hình nằm trong thanh menu (tab) thì đặt ở `src/app/(tabs)/` và khai báo trong `src/app/(tabs)/_layout.tsx`; màn hình còn lại đặt ở `src/app/<tên-module>/`.
+Màn hình nằm trong menu 3 gạch thì đặt ở `src/app/(tabs)/`, khai báo trong `src/app/(tabs)/_layout.tsx` và thêm 1 dòng vào `src/shared/menu.ts`; màn hình còn lại đặt ở `src/app/<tên-module>/`.
 
 ## Thư mục `src/shared/`
 `ui/` (Button, Card, Field…), `theme.ts` (màu HUST), `api/http.ts` (gọi backend + token), `context/Auth.tsx`, `hooks.ts`.
