@@ -35,22 +35,14 @@ export default function LoginScreen() {
     }
   };
 
-  const notVerified = formError?.status === 403 || formError?.code === 'NOT_VERIFIED';
   return (
     <AuthShell
       title="Đăng nhập"
       subtitle="Chào mừng bạn quay lại! Đăng nhập để tiếp tục học cùng bạn bè."
-      footer={<Row><Muted style={{ fontSize: 14 }}>Chưa có tài khoản?</Muted><TextLink title="Đăng ký ngay" onPress={() => router.push('/register')} /></Row>}
+      footer={<Muted style={{ fontSize: 13, textAlign: 'center' }}>Dùng tài khoản do nhà trường cấp. Quên mật khẩu hãy liên hệ quản trị viên.</Muted>}
     >
       {params.verified ? <Notice tone="success">Xác thực email thành công. Hãy đăng nhập để bắt đầu.</Notice> : null}
-      {formError ? (
-        <Notice
-          tone={notVerified ? 'info' : 'danger'}
-          action={notVerified ? <TextLink title="Nhập mã xác thực →" onPress={() => router.push({ pathname: '/verify', params: { email: email.trim().toLowerCase() } })} /> : undefined}
-        >
-          {formError.status === 401 ? 'Email hoặc mật khẩu không đúng.' : formError.message}
-        </Notice>
-      ) : null}
+      {formError ? <Notice tone="danger">{formError.message}</Notice> : null}
       <Field
         label="Email" value={email} onChangeText={setEmail} error={errors.email}
         placeholder="ten.ho@sis.hust.edu.vn" keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress"

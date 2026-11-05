@@ -45,10 +45,10 @@ export default function ProfileScreen() {
         {role === 'student' ? <InfoRow icon="id-card-outline" label="MSSV" value={user.studentId} /> : null}
         <InfoRow icon="business-outline" label="Khoa / Trường" value={user.faculty} />
         {role === 'student' ? <InfoRow icon="people-outline" label="Lớp" value={user.className} /> : null}
-        <InfoRow icon="call-outline" label="Điện thoại" value={user.phone} />
+        {isMock ? <InfoRow icon="call-outline" label="Điện thoại" value={user.phone} /> : null}
       </Card>
 
-      <Card>
+      {isMock ? <Card>
         <H2>Thiết bị này</H2>
         <InfoRow icon={dev.data?.platform === 'web' ? 'desktop-outline' : 'phone-portrait-outline'} label="Tên thiết bị" value={dev.data?.name} />
         <Row>
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
             : <Badge label="Chưa đăng ký thiết bị" fg={colors.warning} bg={colors.warningSoft} />}
         </Row>
         <Muted>Thiết bị được đăng ký khi đăng nhập và huỷ đăng ký khi bạn đăng xuất.</Muted>
-      </Card>
+      </Card> : null}
 
       <Card style={{ paddingVertical: 4 }}>
         <ActionRow icon="create-outline" label="Chỉnh sửa hồ sơ" onPress={() => go('/account/edit')} />

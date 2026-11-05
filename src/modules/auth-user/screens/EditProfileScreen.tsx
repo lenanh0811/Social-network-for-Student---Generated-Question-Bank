@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { deleteMe, updateMe } from '@/modules/auth-user/api/client';
+import { deleteMe, isMock, updateMe } from '@/modules/auth-user/api/client';
 import { AuthError } from '@/modules/auth-user/api/types';
-import { checkName, checkPhone, collect } from '@/modules/auth-user/api/validate';
+import { checkName, collect } from '@/modules/auth-user/api/validate';
 import { Avatar, Notice, PasswordField } from '@/modules/auth-user/components/AuthUi';
 import { useAuth } from '@/shared/context/Auth';
 import { colors } from '@/shared/theme';
@@ -22,7 +22,7 @@ export default function EditProfileScreen() {
   const set = (k: keyof typeof f) => (v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const save = async () => {
-    const errs = collect({ fullName: checkName(f.fullName), phone: checkPhone(f.phone.trim()), bio: f.bio.length > 300 ? 'Giới thiệu tối đa 300 ký tự' : undefined });
+    const errs = collect({ fullName: checkName(f.fullName), bio: f.bio.length > 300 ? 'Giới thiệu tối đa 300 ký tự' : undefined });
     setErrors(errs);
     setFormError('');
     if (Object.keys(errs).length) return;
@@ -52,13 +52,12 @@ export default function EditProfileScreen() {
       {formError ? <Notice>{formError}</Notice> : null}
       <Card>
         <Field label="Họ và tên *" value={f.fullName} onChangeText={set('fullName')} error={errors.fullName} />
-        {role === 'student' ? <Field label="Mã số sinh viên" value={f.studentId} onChangeText={set('studentId')} keyboardType="number-pad" maxLength={8} /> : null}
-        <Field label="Khoa / Trường" value={f.faculty} onChangeText={set('faculty')} placeholder="Trường CNTT&TT" />
-        {role === 'student' ? <Field label="Lớp" value={f.className} onChangeText={set('className')} placeholder="IT1-01 K66" /> : null}
-        <Field label="Số điện thoại" value={f.phone} onChangeText={set('phone')} error={errors.phone} keyboardType="phone-pad" placeholder="09xxxxxxxx" />
+        {[[role === 'student' ? 'Mã số sinh viên' : 'Mã cán bộ', f.studentId], ['Khoa / Trường', f.faculty], ['Lớp', f.className]].map(([label, value]) =>
+          value ? <Muted key={label}>{label}: <Muted style={{ fontWeight: '700' }}>{value}</Muted></Muted> : null)}
+        <Muted>Mã số, khoa và lớp do nhà trường quản lý nên không chỉnh sửa tại đây.</Muted>
         <Field label={`Giới thiệu (${f.bio.length}/300)`} value={f.bio} onChangeText={set('bio')} error={errors.bio} multiline placeholder="Đôi dòng về bạn…" />
       </Card>
-      <DeleteAccount />
+      {isMock ? <DeleteAccount /> : null}
       <View style={{ height: 40 }} />
     </Screen>
   );

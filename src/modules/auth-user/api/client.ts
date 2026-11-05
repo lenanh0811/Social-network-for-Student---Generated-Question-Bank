@@ -152,11 +152,22 @@ const open = async <R>(method: string, path: string, body: unknown, mockFn: () =
 type RawTokens = { access_token: string; refresh_token?: string; expires_in?: number };
 type RawUser = Record<string, unknown>;
 
+/** Đọc hạn (`exp`, giây) trong JWT; trả undefined nếu không phải JWT. */
+function jwtExpiry(token: string): number | undefined {
+  try {
+    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = typeof atob === 'function' ? atob(part.padEnd(Math.ceil(part.length / 4) * 4, '=')) : '';
+    const exp = JSON.parse(json).exp;
+    return typeof exp === 'number' ? exp * 1000 : undefined;
+  } catch { return undefined; }
+}
+
+/** Backend chỉ trả access_token/refresh_token (không có expires_in) → lấy hạn từ JWT. */
 function toSession(t: RawTokens, prevRefresh?: string): Session {
   return {
     accessToken: t.access_token,
     refreshToken: t.refresh_token ?? prevRefresh ?? '',
-    expiresAt: Date.now() + (t.expires_in ?? 900) * 1000,
+    expiresAt: t.expires_in ? Date.now() + t.expires_in * 1000 : jwtExpiry(t.access_token) ?? Date.now() + 5 * 60_000,
   };
 }
 const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
@@ -170,8 +181,8 @@ export function toUser(u: RawUser): UserProfile {
     email: str(u.email) ?? '',
     verified: Boolean(u.is_verified ?? u.verified ?? true),
     avatarUrl: str(u.avatar_url),
-    studentId: str(u.student_id),
-    faculty: str(u.faculty),
+    studentId: str(u.student_lecturer_code) ?? str(u.student_id),
+    faculty: str(u.school_faculty) ?? str(u.faculty),
     className: str(u.class_name),
     phone: str(u.phone),
     bio: str(u.bio),
@@ -213,17 +224,16 @@ export async function login(email: string, password: string): Promise<UserProfil
 
 /** POST /auth/logout — luôn xoá phiên cục bộ kể cả khi server lỗi. */
 export async function logout() {
-  const refreshToken = session?.refreshToken;
   await unregisterDevice();
   try {
-    await authed('POST', '/auth/logout', { refresh_token: refreshToken }, (t) => mock.logout(t));
+    await authed('POST', '/auth/logout', undefined, (t) => mock.logout(t));
   } catch { /* vẫn đăng xuất ở máy */ }
   await setSession(null);
 }
 
 /** POST /auth/change-password */
 export const changePassword = (current: string, next: string) =>
-  authed('POST', '/auth/change-password', { current_password: current, new_password: next }, (t) => mock.changePassword(t, current, next))
+  authed('POST', '/auth/change-password', { old_password: current, new_password: next }, (t) => mock.changePassword(t, current, next))
     .then(() => undefined);
 
 /** GET /users/me */
@@ -238,13 +248,13 @@ export const getUser = (id: string) =>
 /** PUT /users/me */
 export const updateMe = (p: UpdateProfileInput) =>
   authed<UserProfile | RawUser>('PUT', '/users/me', {
-    full_name: p.fullName.trim(), student_id: p.studentId, faculty: p.faculty, class_name: p.className,
-    phone: p.phone, bio: p.bio, avatar_url: p.avatarUrl,
+    // Backend chỉ cho sửa các trường này; mã SV, khoa, lớp do nhà trường quản lý.
+    full_name: p.fullName.trim(), bio: p.bio, avatar_url: p.avatarUrl,
   }, (t) => mock.updateMe(t, p)).then((u) => (isMock ? (u as UserProfile) : toUser(u as RawUser)));
 
 /** DELETE /users/me — xác nhận bằng mật khẩu, sau đó xoá phiên. */
 export async function deleteMe(password: string) {
-  await authed('DELETE', '/users/me', { password }, (t) => mock.deleteMe(t, password));
+  await authed('DELETE', '/users/me', undefined, (t) => mock.deleteMe(t, password));
   await setSession(null);
 }
 
@@ -270,6 +280,7 @@ export const isDeviceRegistered = () => deviceRegistered;
 
 /** POST /devices/register — gọi sau khi đăng nhập / khôi phục phiên. Lỗi không chặn đăng nhập. */
 export async function registerDevice() {
+  if (!isMock) { setRegistered(false); return deviceRegistered; } // backend không có /devices/register: thiết bị đã gửi kèm khi đăng nhập
   const d = await device();
   try {
     await authed('POST', '/devices/register', {
@@ -284,7 +295,7 @@ export async function registerDevice() {
 
 /** DELETE /devices/register — gọi trước khi đăng xuất (lúc token còn hiệu lực). */
 export async function unregisterDevice() {
-  if (!session) return;
+  if (!session || !isMock) return;
   const d = await device();
   try {
     await authed('DELETE', '/devices/register', { device_id: d.id }, (t) => mock.unregisterDevice(t, d.id));
