@@ -41,7 +41,7 @@ src/
 | | |
 |---|---|
 | Ai giữ token | **Chỉ** module `auth-user` (`src/modules/auth-user/api/client.ts`) |
-| Khoá lưu | `quizhub.session` = JSON `{ accessToken, refreshToken, expiresAt }` · `quizhub.device_id` |
+| Khoá lưu | `quizhub.session` = JSON `{ accessToken, refreshToken }` · `quizhub.device_id` |
 | Lưu ở đâu | Web: `localStorage` · Điện thoại: `expo-secure-store` |
 
 **Cấm:** tự đọc/ghi `localStorage`, `AsyncStorage`, `SecureStore` để lấy token (kể cả khoá `"access_token"` — khoá này **không tồn tại** trong app). Tự xử lý 401 / tự làm mới token.
@@ -51,7 +51,7 @@ src/
 
 **Màn hình chỉ cho một vai trò:** bọc bằng `withRole(Component, ['lecturer'])` (`@/components/with-role`).
 
-**Cần token thô (vd. kết nối WebSocket/STOMP):** `import { getAccessToken } from '@/modules/auth-user/api/client'` rồi `await getAccessToken()`. Hàm này tự làm mới khi hết hạn. Gọi lại **mỗi lần kết nối**, đừng lưu lại.
+**Cần token thô (vd. kết nối WebSocket/STOMP):** `import { getAccessToken } from '@/modules/auth-user/api/client'` rồi `await getAccessToken()` mỗi lần kết nối (đừng lưu lại). Hàm này chỉ trả token hiện có, **không đoán hạn**. WebSocket không có cơ chế thử lại như `api()`, nên khi kết nối bị từ chối vì token hết hạn thì gọi `refreshAccessToken()` (từ `@/api/http`) rồi kết nối lại một lần.
 
 ---
 

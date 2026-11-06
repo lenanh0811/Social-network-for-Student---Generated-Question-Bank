@@ -71,7 +71,7 @@ function issue(userId: string, deviceId: string) {
   const expiresAt = Date.now() + ACCESS_TTL;
   access.set(accessToken, { userId, deviceId, expiresAt });
   refresh.set(refreshToken, { userId, deviceId });
-  return { accessToken, refreshToken, expiresAt };
+  return { accessToken, refreshToken };
 }
 
 function revokeTokens(deviceId: string) {

@@ -28,8 +28,6 @@ export type PublicProfile = Pick<UserProfile, 'id' | 'name' | 'role' | 'avatarUr
 export interface Session {
   accessToken: string;
   refreshToken: string;
-  /** epoch ms */
-  expiresAt: number;
 }
 
 /** Thông tin thiết bị hiện tại gửi kèm khi đăng nhập. */

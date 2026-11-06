@@ -37,7 +37,7 @@ Envelope `{ code, message, data }`, thành công khi `code = "0000"`.
 ## Cách hoạt động
 - **Phiên đăng nhập**: lưu ở SecureStore (iOS/Android) hoặc localStorage (web) — `api/storage.ts`, `api/storage.web.ts`.
 - **Gắn token**: `client.ts` gọi `configureApiAuth(getAccessToken)` nên mọi module dùng `call()` đều tự có `Authorization: Bearer …`.
-- **Refresh token**: hạn access token đọc từ `exp` trong JWT; tự refresh trước khi hết hạn 30 giây, và khi server trả 401 thì refresh rồi thử lại đúng 1 lần. Nhiều request cùng lúc chỉ refresh 1 lần. Refresh thất bại ⇒ xoá phiên ⇒ về `/login`.
+- **Refresh token**: frontend **không đoán** hạn access token, backend quyết định. Khi server trả 401 thì refresh rồi thử lại đúng 1 lần. Nhiều request cùng lúc chỉ refresh 1 lần. Refresh bị server từ chối (400/401/403) ⇒ xoá phiên ⇒ về `/login`; lỗi mạng / 5xx thì giữ phiên.
 - **Bảo vệ route**: `src/app/_layout.tsx` dùng `Stack.Protected`. Chưa đăng nhập ⇒ chỉ vào được nhóm `(auth)`; route riêng tư mới phải thêm vào `PRIVATE_ROUTES`.
 - **`useAuth()`** (`src/context/auth.tsx`): `status, user, role, signIn, signOut, reload, setUser`.
 - **Chế độ demo** (chưa đặt `EXPO_PUBLIC_API_URL`): `api/mockDb.ts` giả lập server với cùng mã lỗi. Tài khoản mẫu hiện trên màn đăng nhập, mã OTP là `123456`.

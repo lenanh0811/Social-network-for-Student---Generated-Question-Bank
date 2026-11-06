@@ -3,7 +3,7 @@
  * https://snsqb.duckdns.org/api/v1/swagger-ui/index.html (/auth/*, /users/*, /devices/*).
  * - Envelope `{ code, message, data }`, thành công khi code = "0000" (chấp nhận thêm "1000", "SUCCESS").
  * - Lỗi validate: HTTP 400, code "1002", data = [{ field, message }]. Chưa đăng nhập/token hỏng: HTTP 401, code "9998".
- * - Tự gắn access token, tự refresh khi sắp hết hạn (đọc `exp` trong JWT) hoặc khi server trả 401; chỉ refresh 1 lần cho nhiều request.
+ * - Tự gắn access token. Frontend KHÔNG đoán hạn token: backend quyết định, khi trả 401 thì refresh rồi thử lại 1 lần (chỉ refresh 1 lần cho nhiều request cùng lúc).
  * - Không đặt EXPO_PUBLIC_API_URL => chạy trên mockDb.
  * Dùng fetch trực tiếp thay vì `call()` vì request refresh không được chờ token provider (tránh vòng lặp).
  */
@@ -21,8 +21,6 @@ import {
 const SESSION_KEY = 'quizhub.session';
 const DEVICE_KEY = 'quizhub.device_id';
 const SUCCESS = new Set(['0000', '1000', 'SUCCESS']);
-/** Refresh sớm 30 giây trước khi access token hết hạn. */
-const SKEW = 30_000;
 
 // ───────── Phiên đăng nhập ─────────
 let session: Session | null = null;
@@ -120,21 +118,10 @@ async function send<R>(method: string, path: string, body?: unknown, token?: str
   return (json && 'data' in json ? json.data : json) as R;
 }
 
-/** Đọc `exp` (giây) trong JWT; không đọc được thì coi như còn 15 phút. */
-function jwtExpiry(token: string) {
-  try {
-    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const { exp } = JSON.parse(globalThis.atob(part.padEnd(Math.ceil(part.length / 4) * 4, '=')));
-    if (typeof exp === 'number') return exp * 1000;
-  } catch { /* token không phải JWT */ }
-  return Date.now() + 15 * 60_000;
-}
-
 type RawTokens = { access_token: string; refresh_token?: string };
 const toSession = (t: RawTokens, prevRefresh?: string): Session => ({
   accessToken: t.access_token,
   refreshToken: t.refresh_token ?? prevRefresh ?? '',
-  expiresAt: jwtExpiry(t.access_token),
 });
 
 /** Đổi refresh token lấy access token mới (single-flight). Thất bại => xoá phiên. */
@@ -163,14 +150,14 @@ export function refreshSession(): Promise<Session> {
   return refreshing;
 }
 
-/** Access token còn hạn (refresh nếu cần). Dùng chung cho mọi module qua configureApiAuth. */
+/**
+ * Access token hiện tại, dùng chung cho mọi module qua configureApiAuth.
+ * Không tự đoán hạn: token hết hạn thì server trả 401 và `api()` / `authed()` sẽ làm mới rồi thử lại.
+ * Nếu đang có một lần làm mới dở thì chờ nó xong để dùng token mới.
+ */
 export async function getAccessToken() {
   if (refreshing) return (await refreshing).accessToken;
-  if (!session) return null;
-  if (session.expiresAt - SKEW < Date.now()) {
-    try { return (await refreshSession()).accessToken; } catch { return null; }
-  }
-  return session.accessToken;
+  return session?.accessToken ?? null;
 }
 configureApiAuth(getAccessToken);
 /** Cho `api()` dùng chung: khi gặp 401 thì làm mới token qua refreshSession (cùng một nơi giữ quizhub.session). */
