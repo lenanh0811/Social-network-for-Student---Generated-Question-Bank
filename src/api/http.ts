@@ -12,6 +12,14 @@ let tokenProvider: TokenProvider = async () => token;
 export const setToken = (value: string | null) => { token = value; };
 export const configureApiAuth = (provider: TokenProvider) => { tokenProvider = provider; };
 
+/**
+ * Module đăng nhập đăng ký thêm hàm làm mới token (refresh). `api()` gọi nó khi server trả 401,
+ * rồi thử lại đúng một lần. Trả về token mới, hoặc null nếu không làm mới được.
+ */
+let refreshProvider: TokenProvider | null = null;
+export const configureApiRefresh = (provider: TokenProvider) => { refreshProvider = provider; };
+export const refreshAccessToken = (): Promise<string | null> => (refreshProvider ? refreshProvider() : Promise.resolve(null));
+
 export function getApiBaseUrl(prefix = '', fallback = '') {
   const base = (BASE_URL || fallback).replace(/\/+$/, '');
   const normalizedPrefix = prefix ? `/${prefix.replace(/^\/+|\/+$/g, '')}` : '';

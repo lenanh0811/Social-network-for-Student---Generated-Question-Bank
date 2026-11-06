@@ -9,7 +9,7 @@
  */
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { configureApiAuth, getApiBaseUrl, isMock } from '@/api/http';
+import { configureApiAuth, configureApiRefresh, getApiBaseUrl, isMock } from '@/api/http';
 import type { Role } from '@/types';
 import { mock } from './mock-db';
 import { storage } from './storage';
@@ -173,6 +173,10 @@ export async function getAccessToken() {
   return session.accessToken;
 }
 configureApiAuth(getAccessToken);
+/** Cho `api()` dùng chung: khi gặp 401 thì làm mới token qua refreshSession (cùng một nơi giữ quizhub.session). */
+configureApiRefresh(async () => {
+  try { return (await refreshSession()).accessToken; } catch { return null; }
+});
 
 /** Request cần đăng nhập: gặp 401 thì refresh rồi thử lại đúng 1 lần. */
 async function authed<R>(method: string, path: string, body: unknown, mockFn: (token: string | null) => R): Promise<R> {

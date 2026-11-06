@@ -1,4 +1,4 @@
-import { call, isMock } from '@/api/http';
+import { isMock } from '@/api/http';
 import { api } from '@/api/backend';
 import * as A from './adapters';
 import { approvedQuestions, db, makeQuestion, MOCK_CLASSES, MOCK_SUBJECTS, STUDENT, uid } from './mock-db';
@@ -87,24 +87,24 @@ export const deleteMySubmission = (id: string) =>
 
 /** 16 */
 export const listUserQuestions = (userId: string) =>
-  call<T.Question[]>('GET', `/users/${userId}/questions`, undefined, () =>
-    approvedQuestions().filter((x) => x.authorId === userId)).then(remember);
+  api<T.Question[]>('GET', `/users/${userId}/questions`, { mock: () =>
+    approvedQuestions().filter((x) => x.authorId === userId) }).then(remember);
 /** 17 */
 export const answerQuestion = (qid: string, choice: number) =>
-  call<T.AnswerResult>('POST', `/questions/${qid}/answer`, { choice }, () => {
+  api<T.AnswerResult>('POST', `/questions/${qid}/answer`, { body: { choice }, mock: () => {
     const { q } = findQ(qid);
     (db.answered[qid] ??= []).push(choice);
     q.answerCount++;
     return { correct: choice === q.correctIndex, correctIndex: q.correctIndex, explanation: q.explanation };
-  });
+  } });
 /** 18 */
 export const getQuestionStatistics = (qid: string) =>
-  call<T.QuestionStatistics>('GET', `/questions/${qid}/statistics`, undefined, () => {
+  api<T.QuestionStatistics>('GET', `/questions/${qid}/statistics`, { mock: () => {
     const { q } = findQ(qid);
     const a = db.answered[qid] ?? [];
     const distribution = q.options.map((_, i) => a.filter((x) => x === i).length);
     return { totalAnswers: a.length, correctRate: a.length ? distribution[q.correctIndex] / a.length : 0, distribution };
-  });
+  } });
 /** 19 */
 const rateQuestionMock = (qid: string, stars: number, comment?: string) => {
   const { q } = findQ(qid);
@@ -115,42 +115,42 @@ const rateQuestionMock = (qid: string, stars: number, comment?: string) => {
   return r;
 };
 export const rateQuestion = (qid: string, stars: number, comment?: string) =>
-  call<T.Rating>('POST', `/questions/${qid}/rate`, { stars, comment }, () => rateQuestionMock(qid, stars, comment));
+  api<T.Rating>('POST', `/questions/${qid}/rate`, { body: { stars, comment }, mock: () => rateQuestionMock(qid, stars, comment) });
 /** 20 */
 export const listRatings = (qid: string) =>
-  call<T.Rating[]>('GET', `/questions/${qid}/ratings`, undefined, () => db.ratings[qid] ?? []);
+  api<T.Rating[]>('GET', `/questions/${qid}/ratings`, { mock: () => db.ratings[qid] ?? [] });
 
 // ───────── 5.2.2 Giảng viên duyệt câu hỏi ─────────
 /** 21 */
 export const listPendingSessions = () =>
-  call<T.Session[]>('GET', '/sessions/pending', undefined, () => db.sessions.filter((s) => s.status !== 'resolved'));
+  api<T.Session[]>('GET', '/sessions/pending', { mock: () => db.sessions.filter((s) => s.status !== 'resolved') });
 /** 22 */
 export const getSession = (id: string) =>
-  call<T.Session>('GET', `/sessions/${id}`, undefined, () => findS(id)).then((s) => {
+  api<T.Session>('GET', `/sessions/${id}`, { mock: () => findS(id) }).then((s) => {
     remember(s.questions);
     return s;
   });
 /** 23 */
 export const approveSessions = (sessionIds: string[]) =>
-  call<void>('POST', '/sessions/approve', { sessionIds }, () => {
+  api<void>('POST', '/sessions/approve', { body: { sessionIds }, mock: () => {
     sessionIds.forEach((id) => {
       const s = findS(id);
       s.status = 'resolved';
       s.questions.forEach((x) => { if (x.status !== 'needs-edit') x.status = 'approved'; });
     });
-  });
+  } });
 /** 24 */
 export const rejectSessions = (sessionIds: string[], reason: string) =>
-  call<void>('POST', '/sessions/reject', { sessionIds, reason }, () => {
+  api<void>('POST', '/sessions/reject', { body: { sessionIds, reason }, mock: () => {
     sessionIds.forEach((id) => {
       const s = findS(id);
       s.status = 'resolved';
       s.questions.forEach((x) => { x.status = 'rejected'; x.rejectionCode = 'OTHER'; x.rejectionReason = reason; });
     });
-  });
+  } });
 /** 25 */
 export const updateQuestion = (qid: string, patch: Partial<T.QuestionDraft> & { status?: T.QuestionStatus }) =>
-  call<T.Question>('PUT', `/questions/${qid}`, patch, () => Object.assign(findQ(qid).q, patch)).then(remember);
+  api<T.Question>('PUT', `/questions/${qid}`, { body: patch, mock: () => Object.assign(findQ(qid).q, patch) }).then(remember);
 
 /**
  * Luồng duyệt theo slide 3.1 (9) – dùng PUT /questions/{id} (API 25) với trường `status`:
@@ -161,13 +161,13 @@ export const markNeedsEdit = (qids: string[]) => Promise.all(qids.map((id) => up
 export const decideQuestion = (qid: string, keep: boolean) => updateQuestion(qid, { status: keep ? 'approved' : 'rejected' });
 /** TODO backend: GET /questions?status=needs-edit — danh sách câu đang ở trạng thái "Cần edit". */
 export const listNeedsEdit = () =>
-  call<T.Question[]>('GET', '/questions?status=needs-edit', undefined, () =>
-    db.sessions.flatMap((s) => s.questions).filter((x) => x.status === 'needs-edit')).then(remember);
+  api<T.Question[]>('GET', '/questions?status=needs-edit', { mock: () =>
+    db.sessions.flatMap((s) => s.questions).filter((x) => x.status === 'needs-edit') }).then(remember);
 
 // ───────── 5.2.3 AI ─────────
 /** 26 – gợi ý chỉnh sửa, chưa ghi vào câu hỏi */
 export const aiRefine = (qid: string, instruction: string) =>
-  call<T.AiSuggestion>('POST', `/questions/${qid}/ai-refine`, { instruction }, () => {
+  api<T.AiSuggestion>('POST', `/questions/${qid}/ai-refine`, { body: { instruction }, mock: () => {
     const { q } = findQ(qid);
     return {
       content: q.content.replace(/\?*$/, '') + ' (nêu rõ ngữ cảnh)?',
@@ -176,11 +176,11 @@ export const aiRefine = (qid: string, instruction: string) =>
       explanation: q.explanation ?? `Đáp án đúng là "${q.options[q.correctIndex]}" vì phù hợp với định nghĩa trong giáo trình.`,
       notes: `Đã diễn đạt lại câu hỏi cho rõ ràng hơn${instruction ? ` theo yêu cầu: “${instruction}”` : ''} và bổ sung giải thích.`,
     };
-  });
+  } });
 /** 27 – áp dụng gợi ý của AI vào câu hỏi */
 export const aiApply = (qid: string, s: T.AiSuggestion) =>
-  call<T.Question>('POST', `/questions/${qid}/ai-apply`, s, () =>
-    Object.assign(findQ(qid).q, { content: s.content, options: s.options, correctIndex: s.correctIndex, explanation: s.explanation })).then(remember);
+  api<T.Question>('POST', `/questions/${qid}/ai-apply`, { body: s, mock: () =>
+    Object.assign(findQ(qid).q, { content: s.content, options: s.options, correctIndex: s.correctIndex, explanation: s.explanation }) }).then(remember);
 
 // ───────── 5.2.4 Trò chơi ─────────
 /** GET /subjects – danh sách môn học (Game 4, bảng xếp hạng theo môn). */
@@ -284,11 +284,11 @@ const toFile = (name: string, rows: T.Question[], f: T.ExportFormat): T.ExportFi
 };
 /** 33 */
 export const exportQuestions = (format: T.ExportFormat, subject?: string) =>
-  call<T.ExportFile>('GET', `/questions/export?format=${format}${subject ? `&subject=${encodeURIComponent(subject)}` : ''}`, undefined, () =>
-    toFile('ngan-hang-cau-hoi', approvedQuestions().filter((x) => !subject || x.subject === subject), format));
+  api<T.ExportFile>('GET', `/questions/export?format=${format}${subject ? `&subject=${encodeURIComponent(subject)}` : ''}`, { mock: () =>
+    toFile('ngan-hang-cau-hoi', approvedQuestions().filter((x) => !subject || x.subject === subject), format) });
 /** 34 */
 export const generateExam = (p: T.ExamParams) =>
-  call<T.Exam>('POST', '/exams/generate', p, () => {
+  api<T.Exam>('POST', '/exams/generate', { body: p, mock: () => {
     let pool = approvedQuestions().filter((x) => x.subject === p.subject);
     if (p.mode === 'targeted' && p.topics?.length) pool = pool.filter((x) => p.topics!.includes(x.topic ?? ''));
     if (!pool.length) throw new Error(`Chưa có câu hỏi đã duyệt phù hợp cho môn “${p.subject}”.`);
@@ -304,27 +304,27 @@ export const generateExam = (p: T.ExamParams) =>
     };
     db.exams.unshift(exam);
     return remember(exam.questions) && exam;
-  });
+  } });
 /** TODO backend: GET /questions/topics?subject= — các chủ đề trong ngân hàng, dùng cho sinh đề có chủ đích. */
 export const listBankTopics = (subject: string) =>
-  call<string[]>('GET', `/questions/topics?subject=${encodeURIComponent(subject)}`, undefined, () =>
-    [...new Set(approvedQuestions().filter((x) => x.subject === subject).map((x) => x.topic ?? '').filter(Boolean))]);
+  api<string[]>('GET', `/questions/topics?subject=${encodeURIComponent(subject)}`, { mock: () =>
+    [...new Set(approvedQuestions().filter((x) => x.subject === subject).map((x) => x.topic ?? '').filter(Boolean))] });
 /** 35 */
 export const getExam = (id: string) =>
-  call<T.Exam>('GET', `/exams/${id}`, undefined, () => {
+  api<T.Exam>('GET', `/exams/${id}`, { mock: () => {
     const e = db.exams.find((x) => x.id === id);
     if (!e) throw new Error('Không tìm thấy đề thi');
     return e;
-  });
+  } });
 /** 36 */
-export const listMyExams = () => call<T.Exam[]>('GET', '/exams/my-exams', undefined, () => db.exams);
+export const listMyExams = () => api<T.Exam[]>('GET', '/exams/my-exams', { mock: () => db.exams });
 /** 37 */
 export const exportExam = (id: string, format: T.ExportFormat) =>
-  call<T.ExportFile>('GET', `/exams/${id}/export?format=${format}`, undefined, () => {
+  api<T.ExportFile>('GET', `/exams/${id}/export?format=${format}`, { mock: () => {
     const e = db.exams.find((x) => x.id === id);
     if (!e) throw new Error('Không tìm thấy đề thi');
     return toFile(e.title.replace(/\s+/g, '-').toLowerCase(), e.questions, format);
-  });
+  } });
 
 
 

@@ -70,7 +70,8 @@ export const listMyPosts = () =>
 ```
 
 - `path` bắt đầu bằng `/`, **không** có `/api/v1` (địa chỉ gốc lấy từ `.env`).
-- Tự gắn token, tự bóc `{ code, message, data }` → bạn nhận đúng phần `data`.
+- Tự gắn token (lấy từ phiên `quizhub.session` do `auth-user` giữ), tự bóc `{ code, message, data }` → bạn nhận đúng phần `data`.
+- Gặp lỗi 401: tự làm mới token qua `auth-user` rồi gửi lại **một lần**. Làm mới không được thì `auth-user` đưa người dùng về màn đăng nhập. Module **không** tự xử lý 401.
 - Lỗi: ném `ApiError`, `error.message` là thông báo tiếng Việt của server — hiển thị thẳng cho người dùng.
 - Body gửi bằng `body: {...}`; tham số URL bằng `query: {...}` (giá trị rỗng tự bỏ).
 

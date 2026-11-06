@@ -1,4 +1,4 @@
-import { call } from './http';
+import { call, refreshAccessToken } from './http';
 
 /** Lỗi từ backend: `message` là thông báo tiếng Việt của server. */
 export class ApiError extends Error {
@@ -13,12 +13,15 @@ const qs = (q?: Query) => {
 
 /**
  * HÀM GỌI API CHUẨN CỦA CẢ NHÓM (xem QUY_UOC.md).
- * - Tự gắn token (do module auth cấp qua configureApiAuth), tự làm mới khi hết hạn.
+ * - Tự gắn token (do module auth-user cấp qua configureApiAuth, lấy từ khoá quizhub.session).
+ * - Gặp 401: tự làm mới token qua auth-user rồi thử lại đúng 1 lần. Làm mới không được thì ném lỗi
+ *   (auth-user sẽ xoá phiên và đưa người dùng về màn đăng nhập).
  * - Bóc `data` khỏi `{ code, message, data }`; lỗi thì ném ApiError với `message` tiếng Việt của server.
  * - Không có EXPO_PUBLIC_API_URL => chạy hàm `mock` để demo giao diện.
  */
-export function api<T>(method: string, path: string, opts: { body?: unknown; query?: Query; mock: () => T | Promise<T> }): Promise<T> {
-  return call<T>(method, path + qs(opts.query), opts.body, opts.mock, {
+export async function api<T>(method: string, path: string, opts: { body?: unknown; query?: Query; mock: () => T | Promise<T> }): Promise<T> {
+  const url = path + qs(opts.query);
+  const send = () => call<T>(method, url, opts.body, opts.mock, {
     parseResponse: async (res) => {
       const text = res.status === 204 ? '' : await res.text();
       let json: { code?: unknown; message?: string; data?: T } | undefined;
@@ -30,4 +33,10 @@ export function api<T>(method: string, path: string, opts: { body?: unknown; que
       return (json && 'data' in json ? json.data : undefined) as T;
     },
   });
+  try {
+    return await send();
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401 && (await refreshAccessToken())) return send();
+    throw e;
+  }
 }
