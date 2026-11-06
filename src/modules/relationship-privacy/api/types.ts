@@ -1,4 +1,4 @@
-import type { Role } from '@/shared/types';
+import type { Role } from '@/types';
 
 /** Một người trong danh sách bạn bè / lời mời / theo dõi / chặn. */
 export interface Person {

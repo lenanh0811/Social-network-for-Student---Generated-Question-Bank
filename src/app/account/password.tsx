@@ -1,1 +1,1 @@
-export { default } from '@/modules/auth-user/screens/ChangePasswordScreen';
+export { default } from '@/modules/auth-user/screens/change-password';

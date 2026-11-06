@@ -1,5 +1,5 @@
 import type { GameType } from '@/modules/exam-bank/api/types';
-import type { IconName } from '@/modules/exam-bank/screens/games/GameShell';
+import type { IconName } from './game-shell';
 
 export const GAME_META: Record<GameType, { no: number; title: string; short: string; icon: IconName; color: string }> = {
   GAME_1_PARTICIPANTS: { no: 1, title: 'Đoán số lượng', short: 'Bao nhiêu bạn trong lớp sẽ đề xuất câu hỏi ngày mai?', icon: 'people', color: '#4472C4' },

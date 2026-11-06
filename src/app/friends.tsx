@@ -1,1 +1,1 @@
-export { default } from '@/modules/relationship-privacy/screens/FriendsScreen';
+export { default } from '@/modules/relationship-privacy/screens/friends';

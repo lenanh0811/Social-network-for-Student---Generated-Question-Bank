@@ -1,1 +1,1 @@
-export { default } from '@/modules/exam-bank/screens/QuestionEditScreen';
+export { default } from '@/modules/exam-bank/screens/question-edit';

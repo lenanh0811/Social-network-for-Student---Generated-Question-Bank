@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
-import { useAuth } from "@/shared/context/Auth";
-import { NotificationProvider } from "@/shared/notifications";
-import { NotificationPopover } from "@/shared/ui/NotificationPopover";
-import { MenuProvider, SideMenu } from "@/shared/ui/SideMenu";
-import { TopBar } from "@/shared/ui/TopBar";
+import { useAuth } from "@/context/auth";
+import { NotificationProvider } from "@/context/notifications";
+import { NotificationPopover } from "@/components/notification-popover";
+import { MenuProvider, SideMenu } from "@/components/side-menu";
+import { TopBar } from "@/components/top-bar";
 
 const page = (title: string) => ({
   title,
@@ -13,7 +13,7 @@ const page = (title: string) => ({
 });
 
 /**
- * Không dùng thanh tab: điều hướng bằng menu 3 gạch (SideMenu, danh sách ở shared/menu.ts).
+ * Không dùng thanh tab: điều hướng bằng menu 3 gạch (SideMenu, danh sách ở src/constants.ts).
  * Navbar trên cùng (TopBar): menu 3 gạch, logo, tìm kiếm, chuông thông báo.
  */
 export default function TabsLayout() {

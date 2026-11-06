@@ -1,4 +1,4 @@
-import ExamDetailScreen from '@/modules/exam-bank/screens/ExamDetailScreen';
-import { withRole } from '@/shared/withRole';
+import ExamDetailScreen from '@/modules/exam-bank/screens/exam-detail';
+import { withRole } from '@/components/with-role';
 
 export default withRole(ExamDetailScreen, ['lecturer']);

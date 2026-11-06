@@ -5,8 +5,8 @@
  * Không đặt EXPO_PUBLIC_API_URL => chạy trên `relationMock`.
  */
 import { apiRequest, isMock } from '@/modules/auth-user/api/client';
-import type { Role } from '@/shared/types';
-import { relationMock as mock } from './mockDb';
+import type { Role } from '@/types';
+import { relationMock as mock } from './mock-db';
 import type { FriendState, Person, PersonList, Relationship, ReportInput, ReportResult } from './types';
 
 type Raw = Record<string, unknown>;

@@ -1,4 +1,4 @@
-import ReviewQueueScreen from '@/modules/exam-bank/screens/ReviewQueueScreen';
-import { withRole } from '@/shared/withRole';
+import ReviewQueueScreen from '@/modules/exam-bank/screens/review-queue';
+import { withRole } from '@/components/with-role';
 
 export default withRole(ReviewQueueScreen, ['lecturer']);

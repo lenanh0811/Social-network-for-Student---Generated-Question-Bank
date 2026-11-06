@@ -1,1 +1,1 @@
-export { default } from "@/modules/messaging-notification/screens/MessageScreen";
+export { default } from "@/modules/messaging-notification/screens/message";

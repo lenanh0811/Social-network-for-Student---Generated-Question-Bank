@@ -1,4 +1,4 @@
-import type { Role, User } from '@/shared/types';
+import type { Role, User } from '@/types';
 
 export type Gender = 'MALE' | 'FEMALE';
 

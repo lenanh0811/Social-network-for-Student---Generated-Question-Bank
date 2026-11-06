@@ -1,1 +1,1 @@
-export { default } from '@/modules/auth-user/screens/VerifyScreen';
+export { default } from '@/modules/auth-user/screens/verify';

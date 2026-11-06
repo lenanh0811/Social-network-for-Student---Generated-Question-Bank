@@ -1,4 +1,4 @@
-import ExamGenerateScreen from '@/modules/exam-bank/screens/ExamGenerateScreen';
-import { withRole } from '@/shared/withRole';
+import ExamGenerateScreen from '@/modules/exam-bank/screens/exam-generate';
+import { withRole } from '@/components/with-role';
 
 export default withRole(ExamGenerateScreen, ['lecturer']);

@@ -9,9 +9,9 @@
  */
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { configureApiAuth, getApiBaseUrl, isMock } from '@/shared/api/http';
-import type { Role } from '@/shared/types';
-import { mock } from './mockDb';
+import { configureApiAuth, getApiBaseUrl, isMock } from '@/api/http';
+import type { Role } from '@/types';
+import { mock } from './mock-db';
 import { storage } from './storage';
 import {
   AuthError, type Device, type DeviceInfo, type Gender, type PublicProfile, type RegisterInput, type Session,
@@ -150,8 +150,12 @@ export function refreshSession(): Promise<Session> {
         await setSession(next);
         return next;
       } catch (e) {
-        // Chỉ đăng xuất khi server từ chối token, không đăng xuất vì mất mạng.
-        if (e instanceof AuthError && e.status !== 0) await setSession(null);
+        // Chỉ đăng xuất khi server THỰC SỰ từ chối refresh token (400/401/403).
+        // Mất mạng, lỗi 5xx, quá tải (429)... chỉ là lỗi tạm thời: giữ phiên để lần sau thử lại.
+        if (e instanceof AuthError && [400, 401, 403].includes(e.status)) {
+          console.warn('[auth] Đăng xuất vì refresh token bị từ chối:', e.status, e.code, e.message);
+          await setSession(null);
+        }
         throw e;
       }
     })().finally(() => { refreshing = null; });

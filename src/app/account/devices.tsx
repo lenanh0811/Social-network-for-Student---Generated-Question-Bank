@@ -1,1 +1,1 @@
-export { default } from '@/modules/auth-user/screens/DevicesScreen';
+export { default } from '@/modules/auth-user/screens/devices';

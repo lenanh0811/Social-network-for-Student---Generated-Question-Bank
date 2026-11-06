@@ -1,1 +1,1 @@
-export { default } from '@/modules/relationship-privacy/screens/ReportScreen';
+export { default } from '@/modules/relationship-privacy/screens/report';

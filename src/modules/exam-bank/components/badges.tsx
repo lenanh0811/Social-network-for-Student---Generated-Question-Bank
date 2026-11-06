@@ -1,6 +1,6 @@
 import type { Difficulty, QuestionStatus, SessionStatus } from '@/modules/exam-bank/api/types';
-import { Badge } from '@/shared/ui';
-import { colors } from '@/shared/theme';
+import { Badge } from '@/components/badge';
+import { colors } from '@/theme';
 
 type AnyStatus = SessionStatus | QuestionStatus;
 const STATUS: Record<AnyStatus, [string, string, string]> = {

@@ -2,7 +2,7 @@
  * Chuyển đổi giữa dữ liệu backend (snake_case, đáp án dạng danh sách có `is_correct`)
  * và kiểu dùng trong giao diện (đáp án là mảng chuỗi + `correctIndex`).
  */
-import type { CheckInStatus, CourseClassOption, Game1Class, Game6Round, GameType, Leaderboard, Prediction, Question, QuestionDraft, QuestionStatus, Session, SessionStatus, Subject } from '@/modules/exam-bank/api/types';
+import type { CheckInStatus, CourseClassOption, Game1Class, Game6Round, GameType, Leaderboard, Prediction, Question, QuestionDraft, QuestionStatus, Session, SessionStatus, Subject } from './types';
 
 type RawOption = { key?: string; text?: string; is_correct?: boolean };
 export type RawQuestion = {

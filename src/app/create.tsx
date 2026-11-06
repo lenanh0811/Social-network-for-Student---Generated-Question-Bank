@@ -1,5 +1,5 @@
 // import { router } from 'expo-router';
-// import { CreatePostScreen } from '@/modules/social-score/screens/CreatePostScreen';
+// import { CreatePostScreen } from '@/modules/social-score/screens/create-post';
 
 // export default function CreatePostRoute() {
 //   return (

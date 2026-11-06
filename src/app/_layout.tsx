@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AuthProvider, useAuth } from '@/shared/context/Auth';
-import { GlassBackdrop, Loading, screenOptions } from '@/shared/ui';
+import { AuthProvider, useAuth } from '@/context/auth';
+import { GlassBackdrop } from '@/components/glass-backdrop';
+import { Loading } from '@/components/loading';
+import { screenOptions } from '@/components/header';
 
 /** Các route cần đăng nhập. Route mới cần bảo vệ thì thêm tên vào đây. */
 const PRIVATE_ROUTES = [

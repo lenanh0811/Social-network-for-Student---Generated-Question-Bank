@@ -1,8 +1,8 @@
-import { apiClient } from "@/modules/messaging-notification/api/api.config";
+import { apiClient } from "./api.config";
 import {
   CreateDirectConversationResponse,
   GetConversationsResponse,
-} from "../interfaces/messages.interface";
+} from "@/modules/messaging-notification/api/interfaces/messages.interface";
 
 /**
  * @param after - Timestamp của tin nhắn cuối để lấy trang tiếp theo

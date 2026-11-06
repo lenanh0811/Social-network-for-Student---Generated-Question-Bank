@@ -1,1 +1,1 @@
-export { default } from '@/modules/auth-user/screens/ProfileScreen';
+export { default } from '@/modules/auth-user/screens/profile';

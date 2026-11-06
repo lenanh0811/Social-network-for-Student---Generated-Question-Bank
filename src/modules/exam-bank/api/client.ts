@@ -1,8 +1,8 @@
-import { call, isMock } from '@/shared/api/http';
-import { api } from '@/modules/exam-bank/api/backend';
-import * as A from '@/modules/exam-bank/api/adapters';
-import { approvedQuestions, db, makeQuestion, MOCK_CLASSES, MOCK_SUBJECTS, STUDENT, uid } from '@/modules/exam-bank/api/mockDb';
-import type * as T from '@/modules/exam-bank/api/types';
+import { call, isMock } from '@/api/http';
+import { api } from '@/api/backend';
+import * as A from './adapters';
+import { approvedQuestions, db, makeQuestion, MOCK_CLASSES, MOCK_SUBJECTS, STUDENT, uid } from './mock-db';
+import type * as T from './types';
 
 // Không có GET /questions/{id} trong đặc tả => cache câu hỏi từ các API danh sách/chi tiết.
 const cache = new Map<string, T.Question>();

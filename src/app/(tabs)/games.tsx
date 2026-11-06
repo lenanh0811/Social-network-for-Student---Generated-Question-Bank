@@ -1,4 +1,4 @@
-import GamesScreen from '@/modules/exam-bank/screens/GamesScreen';
-import { withRole } from '@/shared/withRole';
+import GamesScreen from '@/modules/exam-bank/screens/games';
+import { withRole } from '@/components/with-role';
 
 export default withRole(GamesScreen, ['student']);

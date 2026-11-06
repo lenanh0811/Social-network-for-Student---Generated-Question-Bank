@@ -1,4 +1,4 @@
-import ExamChatScreen from '@/modules/exam-bank/screens/ExamChatScreen';
-import { withRole } from '@/shared/withRole';
+import ExamChatScreen from '@/modules/exam-bank/screens/exam-chat';
+import { withRole } from '@/components/with-role';
 
 export default withRole(ExamChatScreen, ['lecturer']);
