@@ -6,8 +6,8 @@
  * - Chặn => huỷ kết bạn, lời mời và theo dõi 2 chiều; đang chặn thì không kết bạn/theo dõi được (403 USER_IS_BLOCKED).
  * - Tự tương tác với chính mình => 400 CANNOT_INTERACT_WITH_SELF.
  */
+import { ApiError } from '@/api/backend';
 import { mockSession } from '@/modules/auth-user/api/mock-db';
-import { AuthError } from '@/modules/auth-user/api/types';
 import type { Person, PersonList, Relationship, ReportInput, ReportResult } from './types';
 
 type Friendship = { requester: string; addressee: string; status: 'PENDING' | 'ACCEPTED'; createdAt: string; acceptedAt?: string };
@@ -45,7 +45,7 @@ const local = () => { try { return globalThis.localStorage ?? null; } catch { re
 })();
 const persist = () => { try { local()?.setItem(KEY, JSON.stringify({ friendships, follows, blocks, reports })); } catch { /* bỏ qua */ } };
 
-const err = (message: string, status: number, code: string) => new AuthError(message, status, code);
+const err = (message: string, status: number, code: string) => new ApiError(message, status, code);
 const pair = (a: string, b: string) => friendships.find((f) => (f.requester === a && f.addressee === b) || (f.requester === b && f.addressee === a));
 const areFriends = (a: string, b: string) => pair(a, b)?.status === 'ACCEPTED';
 const friendIds = (id: string) => friendships.filter((f) => f.status === 'ACCEPTED' && (f.requester === id || f.addressee === id))
@@ -182,7 +182,7 @@ const handlers = {
   report(token: string | null, p: ReportInput): ReportResult {
     const me = mockSession.userId(token);
     if (p.targetType === 'USER') target(me, p.targetId);
-    if (p.violationType === 'OTHER' && !p.description?.trim()) throw new AuthError('Vui lòng mô tả vi phạm', 400, '1002', { description: 'Vui lòng mô tả vi phạm' });
+    if (p.violationType === 'OTHER' && !p.description?.trim()) throw err('Vui lòng mô tả vi phạm', 400, '1002');
     const r: Report = { ...p, id: String(reports.length + 1), reporter: me, status: 'PENDING', createdAt: new Date().toISOString() };
     reports.push(r);
     return { id: r.id, status: r.status, createdAt: r.createdAt };

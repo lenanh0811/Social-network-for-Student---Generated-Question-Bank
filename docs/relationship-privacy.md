@@ -31,12 +31,12 @@ Nguồn: Swagger https://snsqb.duckdns.org/api/v1/swagger-ui/index.html (nhóm 0
 
 **Lưu ý khi đối chiếu Swagger:**
 - `friend_request_status = PENDING` không cho biết ai gửi ⇒ `getRelationship` tra thêm danh sách lời mời đã nhận để phân biệt "Chấp nhận / Từ chối" với "Đã gửi lời mời".
-- Swagger **không có API huỷ lời mời đã gửi** ⇒ nút hiển thị "Đã gửi lời mời" (không bấm được).
+- Chưa làm API rút lời mời đã gửi `DELETE /friendships/requests/sent/{receiverId}` ⇒ nút hiển thị "Đã gửi lời mời" (không bấm được).
 - Danh sách dùng phân trang cursor; hiện lấy 1 trang `limit=50` (tối đa của server).
 - `evidence_urls` (ảnh bằng chứng) chưa làm: cần module upload media (`/medias/*`).
 
 ## Cách làm
-- API dùng `apiRequest` của `auth-user/api/client.ts` ⇒ chung envelope, mã lỗi `AuthError`, tự refresh token.
-- Mock: `api/mockDb.ts` (lưu localStorage `quizhub.mockRelations.v1`). Người dùng mẫu `s2…s6`, `l2` nằm trong `auth-user/api/mockDb.ts`.
+- API gọi qua `api()` trong `src/api/backend.ts` (tự gắn token, tự làm mới khi gặp 401, lỗi là `ApiError`); đổi dữ liệu server ở `api/adapters.ts`.
+- Mock: `api/mock-db.ts` (lưu localStorage `quizhub.mockRelations.v1`). Người dùng mẫu `s2…s6`, `l2` nằm trong `auth-user/api/mock-db.ts`.
 - Dữ liệu demo với tài khoản SV `an.nv@sis.hust.edu.vn`: bạn bè Lê Thị Bình, Đỗ Quang Huy; lời mời đến từ Phạm Minh Châu, Vũ Thu Hà; đã mời Hoàng Đức Dũng; đang theo dõi GV demo.
-- Nút trên hồ sơ người khác: `components/RelationshipPanel.tsx` (gắn trong `auth-user/screens/UserProfileScreen.tsx`).
+- Nút trên hồ sơ người khác: `components/relationship-panel.tsx` (gắn trong `auth-user/screens/user-profile/index.tsx`).

@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { AuthError } from '@/modules/auth-user/api/types';
 import { Notice } from '@/modules/auth-user/components/auth-ui';
 import { report } from '@/modules/relationship-privacy/api/client';
 import type { ReportResult, ReportTarget, ViolationType } from '@/modules/relationship-privacy/api/types';
@@ -50,8 +49,7 @@ export default function ReportScreen() {
     try {
       setResult(await report({ targetType, targetId: params.targetId, violationType: type, description }));
     } catch (err) {
-      if (err instanceof AuthError && err.fields?.description) setErrors({ description: err.fields.description });
-      else setFormError((err as Error).message);
+      setFormError((err as Error).message);
     } finally {
       setBusy(false);
     }
