@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Notice } from '@/modules/auth-user/components/auth-ui';
 import {
   acceptFriendRequest, declineFriendRequest, follow, listFollowers, listFollowing, listFriends, listReceivedRequests,
-  listSentRequests, unfollow,
+  listSentRequests, unfollow, cancelFriendRequest,
 } from '@/modules/relationship-privacy/api/client';
 import type { Person } from '@/modules/relationship-privacy/api/types';
 import { describe, PersonRow } from '@/modules/relationship-privacy/components/person-row';
@@ -134,6 +134,10 @@ export default function FriendsScreen() {
                   {data.sent.map((p, i, l) => (
                     <PersonRow key={p.id} person={p} last={i === l.length - 1} subtitle={describe(p, 'gửi')}>
                       <Badge label="Đang chờ" fg={colors.warning} bg={colors.warningSoft} />
+                      <Button
+                        title="Rút lại" small variant="outline" loading={busy === `cancel:${p.id}`}
+                        onPress={() => act(`cancel:${p.id}`, () => cancelFriendRequest(p.id), (d) => ({ ...d, sent: d.sent?.filter((x) => x.id !== p.id) }), 'Đã rút lời mời kết bạn.')}
+                      />
                     </PersonRow>
                   ))}
                 </Card>

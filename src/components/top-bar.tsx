@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRAND } from '@/constants';
+import { useAuth } from '@/context/auth';
 import { useNotifications } from '@/context/notifications';
 import { colors, glass } from '@/theme';
 import { MenuButton } from './side-menu';
@@ -23,7 +24,16 @@ export const Logo = ({ compact }: { compact?: boolean }) => (
   </Pressable>
 );
 
-/** Navbar trên cùng: menu 3 gạch · logo · tìm kiếm · chuông thông báo. */
+/** Nút tròn trên navbar. */
+function NavIcon({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={6} accessibilityLabel={label} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}>
+      <Ionicons name={icon} size={26} color={colors.primary} />
+    </Pressable>
+  );
+}
+
+/** Navbar trên cùng: menu 3 gạch · logo · bạn bè · trò chơi dự đoán (sinh viên) · tìm kiếm · chuông thông báo. */
 export function TopBar() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -31,6 +41,7 @@ export function TopBar() {
   const [q, setQ] = useState('');
   const search = () => { if (q.trim()) router.push(`/search?q=${encodeURIComponent(q.trim())}` as never); };
   const { unread, open, setOpen } = useNotifications();
+  const { role } = useAuth();
 
   return (
     <View style={{ paddingTop: Platform.OS === 'web' ? 0 : insets.top, height: (Platform.OS === 'web' ? 0 : insets.top) + 64, borderBottomWidth: 1, borderBottomColor: glass.border, overflow: 'hidden' }}>
@@ -39,6 +50,10 @@ export function TopBar() {
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 6 }}>
         <MenuButton />
         <Logo compact={narrow} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', flexGrow: 1, flexBasis: 0, maxWidth: 160, minWidth: role === 'student' ? 88 : 44 }}>
+          <NavIcon icon="people-outline" label="Bạn bè & theo dõi" onPress={() => router.push('/friends' as never)} />
+          {role === 'student' ? <NavIcon icon="game-controller-outline" label="Trò chơi dự đoán" onPress={() => router.navigate('/games' as never)} /> : null}
+        </View>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <View style={{ width: '100%', maxWidth: 460, flexDirection: 'row', alignItems: 'center', gap: 8, height: 42, paddingHorizontal: 14, borderRadius: 21, backgroundColor: '#E9EAEE' }}>
             <Ionicons name="search" size={18} color={colors.muted} />

@@ -21,7 +21,7 @@ export type RawQuestion = {
 export type RawSession = {
   session_id: number; session_code?: string; title: string; content?: string;
   subject_name?: string; subject_code?: string; course_class_id?: number; class_code?: string; semester_name?: string;
-  status: string; question_counts?: number; created_at: string; questions?: RawQuestion[];
+  status: string; question_counts?: number; question_count?: number; created_at: string; questions?: RawQuestion[];
   approved_question_count?: number;
 };
 export type RawClass = {
@@ -57,7 +57,7 @@ export function toSession(r: RawSession, authorName = ''): Session {
     id, code: r.session_code, title: r.title, content: r.content, subject,
     courseClassId: r.course_class_id === undefined ? undefined : String(r.course_class_id), className: r.class_code, semesterName: r.semester_name,
     authorId: '', authorName, status: sessionStatus(r.status), createdAt: r.created_at,
-    questionCount: r.question_counts ?? r.questions?.length, approvedQuestionCount: r.approved_question_count,
+    questionCount: r.question_counts ?? r.question_count ?? r.questions?.length, approvedQuestionCount: r.approved_question_count,
     questions: (r.questions ?? []).map((q) => toQuestion(q, { id, subject, authorName })),
   };
 }

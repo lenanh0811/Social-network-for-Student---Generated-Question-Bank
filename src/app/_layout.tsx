@@ -10,7 +10,7 @@ const PRIVATE_ROUTES = [
   'exam-bank/exam/[id]', 'exam-bank/exam/chat', 'exam-bank/exam/generate',
   'exam-bank/question/[id]', 'exam-bank/question/ai/[id]', 'exam-bank/question/edit/[id]',
   'exam-bank/review/[id]', 'exam-bank/session/[sessionId]', 'exam-bank/submission/[id]', 'exam-bank/submission/form', 'exam-bank/user/[userId]',
-  'account/edit', 'account/password', 'account/devices', 'users/[userId]',
+  'account/edit', 'account/password', 'account/verify-email', 'account/devices', 'users/[userId]',
   'friends', 'account/blocked', 'report',
 ];
 

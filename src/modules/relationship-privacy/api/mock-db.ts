@@ -115,6 +115,12 @@ const handlers = {
     if (!f) throw err('Không tìm thấy lời mời kết bạn (RESOURCE_NOT_FOUND)', 404, 'RESOURCE_NOT_FOUND');
     friendships = friendships.filter((x) => x !== f);
   },
+  cancel(token: string | null, receiver: string) {
+    const me = mockSession.userId(token);
+    const f = friendships.find((x) => x.requester === me && x.addressee === receiver && x.status === 'PENDING');
+    if (!f) throw err('Không tìm thấy lời mời kết bạn (RESOURCE_NOT_FOUND)', 404, 'RESOURCE_NOT_FOUND');
+    friendships = friendships.filter((x) => x !== f);
+  },
   unfriend(token: string | null, id: string) {
     const me = mockSession.userId(token);
     if (!areFriends(me, id)) throw err('Hai người chưa là bạn bè (RESOURCE_NOT_FOUND)', 404, 'RESOURCE_NOT_FOUND');
