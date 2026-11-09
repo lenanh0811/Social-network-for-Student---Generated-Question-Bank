@@ -62,10 +62,11 @@ export async function call<R>(
     return mock();
   }
   const init = options.requestInit ?? {};
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const res = await fetchApi(`${options.baseUrl ?? getApiBaseUrl()}${path}`, {
     ...init,
     method: init.method ?? method,
-    body: init.body ?? (body === undefined ? undefined : JSON.stringify(body)),
+    body: init.body ?? (body === undefined ? undefined : isFormData ? body : JSON.stringify(body)),
   });
   if (options.parseResponse) return options.parseResponse(res);
   if (!res.ok) throw new Error((await res.text().catch(() => '')) || `HTTP ${res.status}`);

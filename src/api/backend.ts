@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(message: string, public status?: number, public code?: string) { super(message); }
 }
 
+const SUCCESS_CODES = new Set(['0000', '1000', 'SUCCESS']);
 type Query = Record<string, string | number | boolean | undefined | null>;
 const qs = (q?: Query) => {
   const e = Object.entries(q ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== '');
@@ -29,6 +30,10 @@ export async function api<T>(method: string, path: string, opts: { body?: unknow
       if (!res.ok) {
         const fallback = res.status === 401 ? 'Phiên đăng nhập đã hết hạn, hãy đăng nhập lại.' : res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này.' : `Lỗi máy chủ (HTTP ${res.status})`;
         throw new ApiError(json?.message || fallback, res.status, json?.code === undefined ? undefined : String(json.code));
+      }
+      const code = json?.code === undefined ? undefined : String(json.code);
+      if (code !== undefined && !SUCCESS_CODES.has(code)) {
+        throw new ApiError(json?.message || 'Yêu cầu không thành công.', res.status, code);
       }
       return (json && 'data' in json ? json.data : undefined) as T;
     },

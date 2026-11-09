@@ -3,21 +3,22 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-function readLocalApiUrl() {
+function readLocalEnv(key) {
   try {
     const envFile = readFileSync(new URL('../.env', import.meta.url), 'utf8');
-    const match = envFile.match(/^\s*EXPO_PUBLIC_API_URL\s*=\s*(.*?)\s*$/m);
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = envFile.match(new RegExp(`^\\s*${escapedKey}\\s*=\\s*(.*?)\\s*$`, 'm'));
     return match?.[1]?.replace(/^["']|["']$/g, '') ?? '';
   } catch {
     return '';
   }
 }
 
-const configuredUrl = process.env.SOCIAL_API_URL ?? process.env.EXPO_PUBLIC_API_URL ?? readLocalApiUrl();
+const configuredUrl = process.env.SOCIAL_API_URL ?? process.env.EXPO_PUBLIC_API_URL ?? readLocalEnv('EXPO_PUBLIC_API_URL');
 const baseUrl = configuredUrl.replace(/\/+$/, '');
 const apiUrl = baseUrl && (baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`);
-const token = process.env.SOCIAL_API_TOKEN;
-const otherUserToken = process.env.SOCIAL_OTHER_USER_TOKEN;
+const token = process.env.SOCIAL_API_TOKEN ?? readLocalEnv('SOCIAL_API_TOKEN');
+const otherUserToken = process.env.SOCIAL_OTHER_USER_TOKEN ?? readLocalEnv('SOCIAL_OTHER_USER_TOKEN');
 const subjectId = process.env.SOCIAL_SUBJECT_ID;
 
 test(
@@ -51,7 +52,7 @@ async function request(path, { accessToken, ...init } = {}) {
     body = text;
   }
   const code = body && typeof body === 'object' && 'code' in body ? String(body.code) : undefined;
-  const success = response.ok && (code === undefined || code === '1000' || code === 'SUCCESS');
+  const success = response.ok && (code === undefined || code === '0000' || code === '1000' || code === 'SUCCESS');
   return { response, body, code, success };
 }
 
@@ -71,26 +72,43 @@ function wordPayload(count) {
   return Array.from({ length: count }, (_, index) => `word${index}`).join(' ');
 }
 
+async function resolveSubjectId() {
+  if (subjectId && /^\d+$/.test(subjectId) && Number.isSafeInteger(Number(subjectId)) && Number(subjectId) > 0) {
+    return Number(subjectId);
+  }
+  const response = await request('/subjects');
+  assertSuccess(response);
+  const data = dataOf(response);
+  const subjects = Array.isArray(data) ? data : data.items ?? data.contents ?? [];
+  const firstId = subjects.find((subject) => Number.isSafeInteger(Number(subject.subject_id ?? subject.id)) && Number(subject.subject_id ?? subject.id) > 0);
+  assert.ok(firstId, 'GET /subjects did not return a valid subject_id');
+  return Number(firstId.subject_id ?? firstId.id);
+}
+
+const postBody = (content, validSubjectId) => ({
+  content,
+  media_urls: [],
+  visibility: 'PUBLIC',
+  subject_id: validSubjectId,
+  post_type: 'SOCIAL_POST',
+});
+
 test(
   'Social Network Core API contract',
   {
     skip:
       !apiUrl
         ? 'Set SOCIAL_API_URL or EXPO_PUBLIC_API_URL to run API integration tests.'
-        : !subjectId
-          ? 'Set SOCIAL_SUBJECT_ID to a valid subject required by POST /posts.'
+        : !token
+          ? 'Set SOCIAL_API_TOKEN to a temporary authenticated test token. Subject ID is discovered from GET /subjects.'
           : false,
   },
   async (t) => {
+    const validSubjectId = await resolveSubjectId();
     const unique = `api-contract-${randomUUID()}`;
     const created = await request('/posts', {
       method: 'POST',
-      body: JSON.stringify({
-        content: unique,
-        media_urls: [],
-        subject_id: subjectId,
-        post_type: 'SOCIAL_POST',
-      }),
+      body: JSON.stringify(postBody(unique, validSubjectId)),
     });
     assertSuccess(created);
     let postId = dataOf(created).post_id;
@@ -116,23 +134,13 @@ test(
     await t.test('rejects empty and over-500-word posts', async () => {
       const empty = await request('/posts', {
         method: 'POST',
-        body: JSON.stringify({
-          content: '   ',
-          media_urls: [],
-          subject_id: subjectId,
-          post_type: 'SOCIAL_POST',
-        }),
+        body: JSON.stringify(postBody('   ', validSubjectId)),
       });
       assertFailure(empty);
 
       const tooLong = await request('/posts', {
         method: 'POST',
-        body: JSON.stringify({
-          content: wordPayload(501),
-          media_urls: [],
-          subject_id: subjectId,
-          post_type: 'SOCIAL_POST',
-        }),
+        body: JSON.stringify(postBody(wordPayload(501), validSubjectId)),
       });
       assertFailure(tooLong);
     });
