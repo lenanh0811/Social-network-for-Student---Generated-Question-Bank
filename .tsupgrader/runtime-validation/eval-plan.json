@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-11-09T07:00:00+07:00",
+  "generatedOnPlatform": "win32",
+  "projectType": "webapp",
+  "setup": [],
+  "assertions": [
+    {
+      "name": "tsc-no-emit",
+      "kind": "process",
+      "command": "npx",
+      "args": [
+        "tsc",
+        "--noEmit"
+      ],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "social-score-lint",
+      "kind": "process",
+      "command": "npx",
+      "args": [
+        "eslint",
+        "src/modules/social-score/api/client.ts",
+        "src/modules/social-score/api/mock-db.ts",
+        "src/modules/social-score/screens/CreatePostScreen.tsx"
+      ],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "web-export",
+      "kind": "process",
+      "command": "npx",
+      "args": [
+        "expo",
+        "export",
+        "--platform",
+        "web"
+      ],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": [
+        "run",
+        "test:api"
+      ],
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "web-dev-server-responds",
+      "kind": "http-probe",
+      "startCommand": "npx",
+      "startArgs": [
+        "expo",
+        "start",
+        "--web",
+        "--port",
+        "3000",
+        "--clear"
+      ],
+      "env": {
+        "EXPO_NO_DOTENV": "1"
+      },
+      "url": "http://localhost:3000/",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "planHash": "b33da44e785ecb5c60c43e86b809f83b5e4dd2212fb58e0f9f58208bb09d90a5",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-09T00:14:41.2068814Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tsc-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 4729
+      },
+      {
+        "name": "social-score-lint",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 3525
+      },
+      {
+        "name": "web-export",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "env: load .env\r\nenv: export EXPO_PUBLIC_API_URL\r\nUsing src/app as the root directory for Expo Router.\r\nStarting Metro Bundler\r\n\r\nWeb Bundled 972ms node_modules\\expo-router\\entry.js (1019 modules)\r\n\r\n\u203A Assets (37):\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\AntDesign.3f78af31cca60105799838a1a7a59fbd.ttf (130KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Entypo.31b5ffea3daddc69dd01a1f3d6cf63c5.ttf (66KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\EvilIcons.140c53a7643ea949007aa9a282153849.ttf (13KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Feather.ca4b48e04dc1ce10bfbddb262c8b835f.ttf (56KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome.b06871f281fee6b241d60582ae9369b9.ttf (166KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome5_Brands.3b89dd103490708d19a95adcae52210e.ttf (134KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome5_Regular.1f77739ca9ff2188b539c36f30ffa2be.ttf (34KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome5_Solid.605ed7926cf39a2ad5ec2d1f9d391d3d.ttf (203KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome6_Brands.56c8d80832e37783f12c05db7c8849e2.ttf (209KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome6_Regular.370dd5af19f8364907b6e2c41f45dbbf.ttf (68KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\FontAwesome6_Solid.adec7d6f310bc577f05e8fe06a5daccf.ttf (424KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Fontisto.b49ae8ab2dbccb02c4d11caaacf09eab.ttf (314KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Foundation.e20945d7c929279ef7a6f1db184a4470.ttf (57KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Ionicons.b4eb097d35f44ed943676fd56f6bdc51.ttf (390KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf (1.3MB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\MaterialIcons.4e85bc9ebe07e0340c9c4fc2f6c38908.ttf (357KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Octicons.871378c6eab492a3e689a9385dc45a12.ttf (69KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\SimpleLineIcons.d2285965fe34b05465047401b8595dd0.ttf (54KB)\r\nnode_modules\\@expo\\vector-icons\\build\\vendor\\react-native-vector-icons\\Fonts\\Zocial.1681f34aaca71b8dfb70756bca331eb2.ttf (26KB)\r\nnode_modules\\expo-router\\assets\\arrow_down.017bc6ba3fc25503e5eb5e53826d48a8.png (9.5KB)\r\nnode_modules\\expo-router\\assets\\error.d1ea1496f9057eb392d5bbf3732a61b7.png (469B)\r\nnode_modules\\expo-router\\assets\\file.19eeb73b9593a38f8e9f418337fc7d10.png (138B)\r\nnode_modules\\expo-router\\assets\\forward.d8b800c443b8972542883e0b9de2bdc6.png (188B)\r\nnode_modules\\expo-router\\assets\\pkg.ab19f4cbc543357183a20571f68380a3.png (364B)\r\nnode_modules\\expo-router\\assets\\react-navigation\\elements\\back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653B)\r\nnode_modules\\expo-router\\assets\\react-navigation\\elements\\back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207B)\r\nnode_modules\\expo-router\\assets\\react-navigation\\elements\\clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425B)\r\nnode_modules\\expo-router\\assets\\react-navigation\\elements\\close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235B)\r\nnode_modules\\expo-router\\assets\\react-navigation\\elements\\search-icon.286d67d3f74808a60a78d3ebf1a5fb57.png (928B)\r\nnode_modules\\expo-router\\assets\\sitemap.412dd9275b6b48ad28f5e3d81bb1f626.png (465B)\r\nnode_modules\\expo-router\\assets\\unmatched.20e71bdf79e3a97bf55fd9e164041578.png (4.8KB)\r\n\r\n\u203A web bundles (37):\r\n_expo/static/js/web/__common-64373c7cf450789802461f887a1f5a7a.js (64\n\u2026[truncated]",
+        "durationMs": 4429
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E congngheweb@1.0.0 test:api\r\n\u003E node --test tests/api-contract.test.mjs\r\n\r\nTAP version 13\r\n# Subtest: API connection and OpenAPI routes\r\nok 1 - API connection and OpenAPI routes\r\n  ---\r\n  duration_ms: 1216.7226\r\n  type: \u0027test\u0027\r\n  ...\r\n# Subtest: Social Network Core API contract\r\nok 2 - Social Network Core API contract # SKIP Set SOCIAL_SUBJECT_ID to a valid subject required by POST /posts.\r\n  ---\r\n  duration_ms: 0.3788\r\n  type: \u0027test\u0027\r\n  ...\r\n1..2\r\n# tests 2\r\n# suites 0\r\n# pass 1\r\n# fail 0\r\n# cancelled 0\r\n# skipped 1\r\n# todo 0\r\n# duration_ms 1339.7957\r\n",
+        "durationMs": 2281,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "web-dev-server-responds",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022en\u0022\u003E\n  \u003Chead\u003E\n    \u003Cmeta charset=\u0022utf-8\u0022 /\u003E\n    \u003Cmeta httpEquiv=\u0022X-UA-Compatible\u0022 content=\u0022IE=edge\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1, shrink-to-fit=no\u0022 /\u003E\n    \u003Ctitle\u003EQuizHub\u003C/title\u003E\n    \u003C!-- The \u0060react-native-web\u0060 recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element --\u003E\n    \u003Cstyle id=\u0022expo-reset\u0022\u003E\n      /* These styles make the body full-height */\n      html,\n      body {\n        height: 100%;\n      }\n      /* These styles disable body scrolling if you are using \u003CScrollView\u003E */\n      body {\n        overflow: hidden;\n      }\n      /* These styles make the root element full-height */\n      #root {\n        display: flex;\n        height: 100%;\n        flex: 1;\n      }\n    \u003C/style\u003E\n  \u003C/head\u003E\n\n  \u003Cbody\u003E\n    \u003C!-- Use static rendering with Expo Router to support running without JavaScript. --\u003E\n    \u003Cnoscript\u003E You need to enable JavaScript to run this app. \u003C/noscript\u003E\n    \u003C!-- The root element for your Expo app. --\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n  \u003Cscript src=\u0022/node_modules/expo-router/entry.bundle?platform=web\u0026dev=true\u0026hot=false\u0026lazy=true\u0026transform.engine=hermes\u0026transform.routerRoot=src%2Fapp\u0026unstable_transformProfile=hermes-stable\u0022 defer\u003E\u003C/script\u003E\u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\nStarting project at D:\\Cong_nghe_web\\CongNgheWeb\r\nUsing src/app as the root directory for Expo Router.\r\nStarting Metro Bundler\r\n\r\nwarning: Bundler cache is empty, rebuilding (this may take a minute)\r\nWaiting on http://localhost:3000\r\n\r\nLogs for your project will appear below.\r\n",
+        "durationMs": 13857
+      }
+    ],
+    "executions": [
+      {
+        "source": "tsc-no-emit",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npx.CMD",
+        "args": [
+          "tsc",
+          "--noEmit"
+        ],
+        "cwd": "D:\\Cong_nghe_web\\CongNgheWeb",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "social-score-lint",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npx.CMD",
+        "args": [
+          "eslint",
+          "src/modules/social-score/api/client.ts",
+          "src/modules/social-score/api/mock-db.ts",
+          "src/modules/social-score/screens/CreatePostScreen.tsx"
+        ],
+        "cwd": "D:\\Cong_nghe_web\\CongNgheWeb",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "web-export",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npx.CMD",
+        "args": [
+          "expo",
+          "export",
+          "--platform",
+          "web"
+        ],
+        "cwd": "D:\\Cong_nghe_web\\CongNgheWeb",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "test:api"
+        ],
+        "cwd": "D:\\Cong_nghe_web\\CongNgheWeb",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "web-dev-server-responds",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npx.CMD",
+        "args": [
+          "expo",
+          "start",
+          "--web",
+          "--port",
+          "3000",
+          "--clear"
+        ],
+        "cwd": "D:\\Cong_nghe_web\\CongNgheWeb",
+        "env": {
+          "EXPO_NO_DOTENV": "1"
+        },
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}
