@@ -1,17 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { getGame6Round, listReportableQuestions, reportQuestion, submitGame6 } from '@/modules/exam-bank/api/client';
+import { getGame6Round, submitGame6 } from '@/modules/exam-bank/api/client';
 import { LETTERS } from '@/modules/exam-bank/components/question-card';
 import { GameShell } from './game-shell';
 import { GAME_META } from './meta';
-import { isMock } from '@/api/http';
 import { useLoad } from '@/hooks/use-load';
 import { colors } from '@/theme';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { ErrorBox } from '@/components/error-box';
-import { Field } from '@/components/field';
 import { Loading } from '@/components/loading';
 import { Muted } from '@/components/muted';
 import { Row } from '@/components/row';
@@ -37,43 +35,10 @@ export function Mg5({ onClose }: { onClose?: () => void }) {
   const rule = 'Phát hiện câu hỏi sai đề hoặc sai đáp án? Báo lỗi cho giảng viên thẩm định. Nếu giảng viên xác nhận là lỗi thật, bạn được cộng điểm còn tác giả bị trừ điểm.';
   return (
     <GameShell onClose={onClose} color={m.color} no={m.no} title={m.title} icon={m.icon} reward="Lỗi được xác nhận → cộng điểm" rule={rule}>
-      {isMock ? <MockReport /> : (
-        <Card style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
-          <Text style={{ color: colors.text }}>Mở một câu hỏi bất kỳ, vào tab <Text style={{ fontWeight: '600' }}>Đánh giá</Text> rồi bấm <Text style={{ fontWeight: '600' }}>“Báo câu này bị lỗi”</Text> kèm mô tả lỗi.</Text>
-        </Card>
-      )}
+      <Card style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
+        <Text style={{ color: colors.text }}>Mở một câu hỏi bất kỳ, vào tab <Text style={{ fontWeight: '600' }}>Đánh giá</Text> rồi bấm <Text style={{ fontWeight: '600' }}>“Báo câu này bị lỗi”</Text> kèm mô tả lỗi.</Text>
+      </Card>
     </GameShell>
-  );
-}
-
-/** Chỉ ở chế độ demo: danh sách câu để thử báo lỗi ngay trong trò chơi. */
-function MockReport() {
-  const { data, loading, error, reload } = useLoad(listReportableQuestions);
-  const [qid, setQid] = useState<string>();
-  const [reason, setReason] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; t: string }>();
-  const send = async () => {
-    setBusy(true); setMsg(undefined);
-    try { await reportQuestion(qid!, reason.trim()); setMsg({ ok: true, t: 'Đã gửi báo cáo. Giảng viên sẽ thẩm định.' }); setQid(undefined); setReason(''); }
-    catch (e) { setMsg({ ok: false, t: (e as Error).message }); } finally { setBusy(false); }
-  };
-  if (loading && !data) return <Loading />;
-  if (error) return <ErrorBox message={error} onRetry={reload} />;
-  return (
-    <>
-      {data?.map((q) => (
-        <Pressable key={q.id} onPress={() => setQid(q.id)}>
-          <Row style={{ flexWrap: 'nowrap' }}>
-            <Ionicons name={qid === q.id ? 'radio-button-on' : 'radio-button-off'} size={22} color={qid === q.id ? colors.primary : colors.muted} />
-            <Text style={{ flex: 1, color: colors.text }}>{q.content}</Text>
-          </Row>
-        </Pressable>
-      ))}
-      {qid ? <Field label="Lỗi bạn phát hiện" value={reason} onChangeText={setReason} multiline placeholder="VD: Đáp án đúng bị sai, đề bài mơ hồ..." /> : null}
-      {msg ? (msg.ok ? <Note>{msg.t}</Note> : <Err>{msg.t}</Err>) : null}
-      <Button title="Báo lỗi" icon="flag" variant="danger" disabled={!qid || !reason.trim()} loading={busy} onPress={send} />
-    </>
   );
 }
 

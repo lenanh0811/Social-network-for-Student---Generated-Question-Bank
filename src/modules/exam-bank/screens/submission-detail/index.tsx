@@ -59,7 +59,6 @@ export default function SubmissionDetail() {
       {s.questions.map((q, i) => (
         <View key={q.id} style={{ gap: 6 }}>
           <QuestionCard q={q} index={i} showAnswer showSource showStatus />
-          {q.status === 'needs-edit' ? <Muted>🔒 Giảng viên đang xem xét câu này — điểm cộng của bạn được bảo lưu cho tới khi có quyết định giữ/loại.</Muted> : null}
         </View>
       ))}
     </Screen>

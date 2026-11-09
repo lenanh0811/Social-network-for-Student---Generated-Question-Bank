@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, type ScrollViewInstance } from 'react-native';
-import { generateExam, listBankTopics } from '@/modules/exam-bank/api/client';
-import type { Exam, ExamParams } from '@/modules/exam-bank/api/types';
-import { SUBJECTS } from '@/constants';
+import { generateExam, listLecturerClasses } from '@/modules/exam-bank/api/client';
+import type { DifficultyMix, Exam, ExamParams, LecturerClass } from '@/modules/exam-bank/api/types';
 import { colors, glass } from '@/theme';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
@@ -15,33 +14,40 @@ import { Muted } from '@/components/muted';
 import { Row } from '@/components/row';
 
 interface Msg { id: string; from: 'lecturer' | 'ai'; text: string; exam?: Exam }
-const QUICK = ['Tạo đề 10 câu môn Công nghệ Web, mức trung bình', 'Đề 15 câu Cơ sở dữ liệu, nâng cao, 45 phút', 'Đề cơ bản 8 câu Mạng máy tính', 'Đổi thành 12 câu'];
-const MIX = { dễ: [70, 25, 5], khó: [15, 45, 40], cân: [40, 40, 20] } as const;
+const QUICK = ['Tạo đề 10 câu, mức trung bình', 'Đề 15 câu, nâng cao', 'Đề cơ bản 8 câu', 'Đổi thành 12 câu'];
+const MIX: Record<'dễ' | 'khó' | 'cân', DifficultyMix> = {
+  dễ: { easy: 0.7, medium: 0.25, hard: 0.05 }, khó: { easy: 0.15, medium: 0.45, hard: 0.4 }, cân: { easy: 0.4, medium: 0.4, hard: 0.2 },
+};
 let n = 0;
 
-/** Phần "AI" tạm thời: tự diễn giải yêu cầu tiếng Việt thành tham số. TODO backend: gửi `prompt` lên API 34 để LLM diễn giải. */
-async function interpret(prompt: string, prev: ExamParams | undefined): Promise<ExamParams> {
+/**
+ * Phần "AI" tạm thời: tự đọc yêu cầu tiếng Việt (số câu, môn, độ khó) thành tham số cho API 34.
+ * Môn học và lớp lấy từ các lớp giảng viên đang phụ trách (backend bắt buộc có môn và lớp áp dụng).
+ */
+function interpret(prompt: string, prev: ExamParams | undefined, classes: LecturerClass[]): { params: ExamParams; subjectName: string } {
   const low = prompt.toLowerCase();
-  const subject = SUBJECTS.find((s) => low.includes(s.toLowerCase())) ?? prev?.subject ?? SUBJECTS[0];
+  const subjects = classes.filter((c, i) => classes.findIndex((x) => x.subjectId === c.subjectId) === i);
+  const named = subjects.find((s) => low.includes(s.subjectName.toLowerCase()));
+  const subject = named ?? subjects.find((s) => s.subjectId === prev?.subjectId) ?? (subjects.length === 1 ? subjects[0] : undefined);
+  if (!subject) throw new Error(`Bạn muốn tạo đề cho môn nào? Các môn bạn phụ trách: ${subjects.map((s) => s.subjectName).join(', ')}.`);
   const count = +(low.match(/(\d+)\s*câu/)?.[1] ?? prev?.count ?? 10);
-  const durationMin = +(low.match(/(\d+)\s*phút/)?.[1] ?? prev?.durationMin ?? 30);
   const mixKey = /cơ bản|\bdễ\b/.test(low) ? 'dễ' : /nâng cao|\bkhó\b/.test(low) ? 'khó' : /trung bình|cân bằng/.test(low) ? 'cân' : undefined;
-  const [easy, medium, hard] = mixKey ? MIX[mixKey] : prev ? [prev.mix.easy, prev.mix.medium, prev.mix.hard] : MIX.cân;
-  const bank = await listBankTopics(subject);
-  const topics = bank.filter((t) => low.includes(t.toLowerCase()));
-  const targeted = !!mixKey || topics.length > 0 || prev?.mode === 'targeted';
   return {
-    mode: targeted ? 'targeted' : 'random', topics: topics.length ? topics : prev?.topics, prompt,
-    title: `Đề AI – ${subject}`, subject, count, durationMin, mix: { easy, medium, hard },
+    subjectName: subject.subjectName,
+    params: {
+      title: `Đề AI – ${subject.subjectName}`, subjectId: subject.subjectId, classIds: classes.filter((c) => c.subjectId === subject.subjectId).map((c) => c.id),
+      count, difficulty: mixKey ? MIX[mixKey] : prev?.difficulty,
+    },
   };
 }
 
 /** Giảng viên tạo đề thi bằng cách chat với AI. Mỗi tin nhắn có thể điều chỉnh đề (API 34). */
 export default function ExamChat() {
-  const [msgs, setMsgs] = useState<Msg[]>([{ id: 'hi', from: 'ai', text: 'Xin chào! Hãy mô tả đề thi bạn cần: môn học, số câu, độ khó, chủ đề, thời gian. VD: “Tạo đề 10 câu Công nghệ Web về REST, mức khó, 30 phút”. Sau đó bạn có thể nhắn tiếp để chỉnh, ví dụ “đổi thành 15 câu”.' }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ id: 'hi', from: 'ai', text: 'Xin chào! Hãy mô tả đề thi bạn cần: môn học, số câu, độ khó. VD: “Tạo đề 10 câu môn Công nghệ Web, mức khó”. Sau đó bạn có thể nhắn tiếp để chỉnh, ví dụ “đổi thành 15 câu”. Đề được bốc từ các câu đã duyệt và áp dụng cho các lớp bạn phụ trách của môn đó.' }]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const last = useRef<ExamParams>(undefined);
+  const myClasses = useRef<LecturerClass[]>(undefined);
   const scroll = useRef<ScrollViewInstance>(null);
   const end = () => setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 60);
 
@@ -51,12 +57,14 @@ export default function ExamChat() {
     setText(''); setBusy(true);
     setMsgs((m) => [...m, { id: `u${++n}`, from: 'lecturer', text: msg }]); end();
     try {
-      const params = await interpret(msg, last.current);
+      myClasses.current ??= await listLecturerClasses();
+      const { params, subjectName } = interpret(msg, last.current, myClasses.current);
       const exam = await generateExam(params);
       last.current = params;
-      const how = params.mode === 'random' ? 'bốc ngẫu nhiên' : `có chủ đích${params.topics?.length ? ` (chủ đề: ${params.topics.join(', ')})` : ''}, dễ ${params.mix.easy}% · TB ${params.mix.medium}% · khó ${params.mix.hard}%`;
-      const short = exam.questions.length < params.count ? ` Ngân hàng hiện chỉ có ${exam.questions.length}/${params.count} câu phù hợp.` : '';
-      setMsgs((m) => [...m, { id: `a${++n}`, from: 'ai', exam, text: `Đã tạo đề gồm ${exam.questions.length} câu môn ${params.subject}, ${params.durationMin} phút, ${how}.${short}` }]);
+      const d = params.difficulty;
+      const how = d ? `dễ ${Math.round(d.easy * 100)}% · TB ${Math.round(d.medium * 100)}% · khó ${Math.round(d.hard * 100)}%` : 'bốc ngẫu nhiên';
+      const short = exam.questionCount < params.count ? ` Ngân hàng hiện chỉ có ${exam.questionCount}/${params.count} câu phù hợp.` : '';
+      setMsgs((m) => [...m, { id: `a${++n}`, from: 'ai', exam, text: `Đã tạo đề gồm ${exam.questionCount} câu môn ${subjectName}, áp dụng cho ${params.classIds.length} lớp, ${how}.${short}` }]);
     } catch (e) {
       setMsgs((m) => [...m, { id: `a${++n}`, from: 'ai', text: `Chưa tạo được đề: ${(e as Error).message}` }]);
     } finally { setBusy(false); end(); }

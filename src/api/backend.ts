@@ -17,9 +17,9 @@ const qs = (q?: Query) => {
  * - Gặp 401: tự làm mới token qua auth-user rồi thử lại đúng 1 lần. Làm mới không được thì ném lỗi
  *   (auth-user sẽ xoá phiên và đưa người dùng về màn đăng nhập).
  * - Bóc `data` khỏi `{ code, message, data }`; lỗi thì ném ApiError với `message` tiếng Việt của server.
- * - Không có EXPO_PUBLIC_API_URL => chạy hàm `mock` để demo giao diện.
+ * - `mock` là tuỳ chọn: không có EXPO_PUBLIC_API_URL (npm run demo) mà API không có `mock` thì báo lỗi rõ ràng.
  */
-export async function api<T>(method: string, path: string, opts: { body?: unknown; query?: Query; mock: () => T | Promise<T> }): Promise<T> {
+export async function api<T>(method: string, path: string, opts: { body?: unknown; query?: Query; mock?: () => T | Promise<T> } = {}): Promise<T> {
   const url = path + qs(opts.query);
   const send = () => call<T>(method, url, opts.body, opts.mock, {
     parseResponse: async (res) => {

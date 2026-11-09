@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import type { Difficulty, QuestionDraft } from '@/modules/exam-bank/api/types';
+import type { QuestionDraft } from '@/modules/exam-bank/api/types';
 import { colors, radius } from '@/theme';
 import { LETTERS } from './question-card';
 import { Chip } from '@/components/chip';
@@ -17,7 +17,7 @@ export const validateDraft = (d: QuestionDraft) =>
     : d.options.some((o) => !o.trim()) ? 'Điền đủ các đáp án'
     : null;
 
-/** Form soạn một câu hỏi trắc nghiệm: nội dung, các đáp án (chọn đáp án đúng), giải thích, chủ đề, độ khó. */
+/** Form soạn một câu hỏi trắc nghiệm: nội dung, các đáp án (chọn đáp án đúng), giải thích. Sinh viên (showSource) có thêm nguồn gốc và mức tự tin. */
 export function QuestionEditor({ value, onChange, showErrors, showSource }: { value: QuestionDraft; onChange: (d: QuestionDraft) => void; showErrors?: boolean; showSource?: boolean }) {
   const set = <K extends keyof QuestionDraft>(k: K, v: QuestionDraft[K]) => onChange({ ...value, [k]: v });
   const setOpt = (i: number, t: string) => set('options', value.options.map((o, k) => (k === i ? t : o)));
@@ -58,19 +58,7 @@ export function QuestionEditor({ value, onChange, showErrors, showSource }: { va
             {CONFIDENCE.map((l, i) => <Chip key={i} label={`${i} · ${l}`} active={value.confidence === i} onPress={() => set('confidence', i)} />)}
           </Row>
         </View>
-      ) : (
-        <>
-          <Field label="Chủ đề" value={value.topic ?? ''} onChangeText={(t) => set('topic', t)} placeholder="VD: REST, SQL, CSS..." />
-          <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 13, fontWeight: '600' }}>Độ khó</Text>
-            <Row>
-              {([['easy', 'Dễ'], ['medium', 'Trung bình'], ['hard', 'Khó']] as [Difficulty, string][]).map(([d, l]) => (
-                <Chip key={d} label={l} active={value.difficulty === d} onPress={() => set('difficulty', d)} />
-              ))}
-            </Row>
-          </View>
-        </>
-      )}
+      ) : null}
     </View>
   );
 }

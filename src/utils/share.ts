@@ -1,14 +1,10 @@
-import { Platform, Share } from 'react-native';
-import type { ExportFile } from '@/modules/exam-bank/api/types';
+import { Linking, Platform } from 'react-native';
 
-/** Web: tải file xuống. Native: mở bảng chia sẻ với nội dung file. */
-export async function saveFile(f: ExportFile) {
+/** Mở đường dẫn tải file do backend trả về (PDF / Excel). Web: mở tab mới. Điện thoại: mở bằng trình duyệt hệ thống. */
+export async function openDownload(url: string) {
   if (Platform.OS === 'web') {
-    const url = URL.createObjectURL(new Blob(['﻿' + f.content], { type: f.mime + ';charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url; a.download = f.filename; a.click();
-    URL.revokeObjectURL(url);
-  } else {
-    await Share.share({ title: f.filename, message: f.content });
+    window.open(url, '_blank', 'noopener');
+    return;
   }
+  await Linking.openURL(url);
 }

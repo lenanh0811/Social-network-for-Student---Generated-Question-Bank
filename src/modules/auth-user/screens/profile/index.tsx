@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useState } from 'react';
-import { getCheckIn, getLeaderboard, listNeedsEdit, listPendingSessions, listUserQuestions } from '@/modules/exam-bank/api/client';
+import { countApprovedQuestions, getCheckIn, getLeaderboard, listReviewableSessions } from '@/modules/exam-bank/api/client';
 import { isMock } from '@/modules/auth-user/api/client';
 import { ActionRow, InfoRow, Notice } from '@/modules/auth-user/components/auth-ui';
 import { useAuth } from '@/context/auth';
@@ -137,25 +137,23 @@ function StudentStats() {
   const { user } = useAuth();
   const board = useLoad(() => getLeaderboard('SEMESTER'));
   const checkin = useLoad(getCheckIn);
-  const approved = useLoad(() => listUserQuestions(user.id), [user.id]);
+  const approved = useLoad(() => countApprovedQuestions(user.id), [user.id]);
   const me = board.data?.myRank;
   return (
     <StatGrid items={[
       { label: 'Điểm học kỳ', value: me?.points, onPress: () => go('/games') },
       { label: 'Hạng', value: me ? `#${me.rank}` : undefined, onPress: () => go('/games') },
       { label: 'Chuỗi điểm danh (ngày)', value: checkin.data?.streak },
-      { label: 'Câu hỏi đã duyệt', value: approved.data?.length, onPress: () => go(`/exam-bank/user/${user.id}`) },
+      { label: 'Câu hỏi đã duyệt', value: approved.data, onPress: () => go(`/exam-bank/user/${user.id}`) },
     ]} />
   );
 }
 
 function LecturerStats() {
-  const pending = useLoad(listPendingSessions);
-  const needs = useLoad(listNeedsEdit);
+  const pending = useLoad(listReviewableSessions);
   return (
     <StatGrid items={[
       { label: 'Phiên chờ duyệt', value: pending.data?.length, onPress: () => go('/review') },
-      { label: 'Câu hỏi “Cần edit”', value: needs.data?.length, onPress: () => go('/review') },
     ]} />
   );
 }
