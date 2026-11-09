@@ -10,6 +10,6 @@ export function H2({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  h1: { fontSize: 26, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
-  h2: { fontSize: 16, fontWeight: '700', color: colors.text },
+  h1: { fontSize: 26, fontWeight: "700", color: colors.text, letterSpacing: -0.5 },
+  h2: { fontSize: 16, fontWeight: '600', color: colors.text },
 });

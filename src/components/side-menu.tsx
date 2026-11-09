@@ -18,7 +18,7 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
   return <Ctx.Provider value={{ open, visible, setOpen, onClosed: () => setVisible(false) }}>{children}</Ctx.Provider>;
 };
 
-/** Nút 3 gạch. `floating` = nổi góc trái trên cùng (dùng cho trang chủ toàn màn hình). */
+/** Nút 3 gạch. `floating` = nổi góc trái trên cùng. */
 export function MenuButton({ floating }: { floating?: boolean }) {
   const { setOpen } = useMenu();
   const btn = (
@@ -38,7 +38,9 @@ const W = 292;
 /** Thanh bên trượt ra từ trái khi bấm 3 gạch. */
 export function SideMenu() {
   const { open, visible, setOpen, onClosed } = useMenu();
-  const { user, role } = useAuth();
+  const { user, role, signOut } = useAuth();
+  const [confirming, setConfirming] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const path = usePathname();
   const { width } = useWindowDimensions();
   const panelW = Math.min(W, width - 56);
@@ -50,6 +52,7 @@ export function SideMenu() {
   }, [open, anim, onClosed]);
   if (!visible) return null;
 
+  const logout = async () => { setLoggingOut(true); await signOut(); }; // guard ở _layout tự đưa về /login
   const go = (href: string) => { setOpen(false); router.navigate(href as never); };
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -61,24 +64,40 @@ export function SideMenu() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12 }}>
             <Ionicons name="person-circle" size={48} color={colors.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: '800', fontSize: 16, color: colors.text }} numberOfLines={1}>{user.name}</Text>
+              <Text style={{ fontWeight: '600', fontSize: 16, color: colors.text }} numberOfLines={1}>{user.name}</Text>
               <Muted>{role === 'student' ? 'Sinh viên' : 'Giảng viên'}</Muted>
             </View>
             <Pressable onPress={() => setOpen(false)} hitSlop={8}><Ionicons name="close" size={24} color={colors.muted} /></Pressable>
           </View>
           <View style={{ height: 1, backgroundColor: glass.edge, marginBottom: 6 }} />
           {MENU_ITEMS.filter((i) => !i.roles || i.roles.includes(role)).map((i) => {
-            const active = i.href === '/' ? path === '/' : path.startsWith(i.href);
+            const active = path.startsWith(i.href);
             return (
               <Pressable key={i.href} onPress={() => go(i.href)} style={({ pressed }) => ({
                 flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 14, borderRadius: 18,
                 backgroundColor: active ? colors.primary : pressed ? 'rgba(0,0,0,0.05)' : 'transparent',
               })}>
-                <Ionicons name={i.icon} size={22} color={active ? '#fff' : colors.text} />
-                <Text style={{ fontWeight: '700', fontSize: 15, color: active ? '#fff' : colors.text }}>{i.label}</Text>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: active ? '#fff' : colors.text }}>{i.label}</Text>
               </Pressable>
             );
           })}
+          <View style={{ flex: 1 }} />
+          <View style={{ height: 1, backgroundColor: glass.edge, marginBottom: 6 }} />
+          {confirming ? (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Pressable disabled={loggingOut} onPress={() => setConfirming(false)} style={({ pressed }) => ({ flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 18, backgroundColor: pressed ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.05)' })}>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: colors.text }}>Hủy</Text>
+              </Pressable>
+              <Pressable disabled={loggingOut} onPress={logout} style={({ pressed }) => ({ flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 18, backgroundColor: colors.danger, opacity: pressed || loggingOut ? 0.7 : 1 })}>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: '#fff' }}>{loggingOut ? 'Đang thoát...' : 'Đăng xuất'}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={() => setConfirming(true)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, paddingHorizontal: 14, borderRadius: 18, backgroundColor: pressed ? 'rgba(0,0,0,0.05)' : 'transparent' })}>
+              <Ionicons name="log-out-outline" size={22} color={colors.danger} />
+              <Text style={{ fontWeight: '600', fontSize: 15, color: colors.danger }}>Đăng xuất</Text>
+            </Pressable>
+          )}
         </Glass>
       </Animated.View>
     </View>

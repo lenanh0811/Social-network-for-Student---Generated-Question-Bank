@@ -7,7 +7,7 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
     <Pressable onPress={onPress}>
       {active ? (
         <View style={[styles.chip, { backgroundColor: colors.primary, borderColor: 'rgba(255,255,255,0.6)' }]}>
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{label}</Text>
+          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>{label}</Text>
         </View>
       ) : (
         <Glass style={[styles.chip, { borderRadius: radius.pill }]}><Text style={{ color: colors.text, fontWeight: '600', fontSize: 13 }}>{label}</Text></Glass>

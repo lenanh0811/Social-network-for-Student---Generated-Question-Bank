@@ -22,7 +22,6 @@ src/
 ├─ api/                 http.ts, backend.ts — lớp gọi API chung (mục 2)
 ├─ context/             auth.tsx (ai đang đăng nhập), notifications.tsx
 ├─ hooks/  utils/       use-load.ts · format-date.ts, navigation.ts, share.ts…
-├─ screens/home/        trang chủ (chung cho cả nhóm)
 ├─ constants.ts         BRAND, SUBJECTS, MENU_ITEMS
 ├─ theme.ts             màu, khoảng cách, kiểu kính mờ
 └─ types.ts             Role, User, IconName…
@@ -104,7 +103,7 @@ Quy tắc:
 2. **Trang chính trong menu** (tab) đặt ở `src/app/(tabs)/<tên>.tsx` → URL ngắn: `/social`, `/messages`, `/contribute`.
 3. **Trang con** đặt trong thư mục có tên module: `/exam-bank/...`, `/messages/[conversationId]`, `/posts/[id]`.
 4. Tham số động đặt tên rõ nghĩa: `[userId]`, `[postId]`, `[conversationId]` — tránh chỉ `[id]` khi dễ nhầm.
-5. **Một URL chỉ có một người sở hữu.** Trước khi tạo route mới, xem `src/app/` đã có chưa (vd. `/search` không được hai người cùng tạo).
+5. **Một URL chỉ có một người sở hữu.** Trước khi tạo route mới, xem `src/app/` đã có chưa (vd. `/social` không được hai người cùng tạo).
 
 | Người | Phạm vi route |
 |---|---|

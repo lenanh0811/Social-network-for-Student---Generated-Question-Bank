@@ -29,7 +29,7 @@ export default function LoginScreen() {
     if (Object.keys(errs).length) return;
     setLoading(true);
     try {
-      await signIn(email, password); // guard ở _layout tự chuyển sang trang chủ
+      await signIn(email, password); // guard ở _layout tự chuyển sang "/" rồi về trang Cá nhân
     } catch (e) {
       const err = e instanceof AuthError ? e : new AuthError((e as Error).message, 0);
       setFormError(err);

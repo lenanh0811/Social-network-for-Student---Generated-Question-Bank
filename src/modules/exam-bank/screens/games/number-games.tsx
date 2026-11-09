@@ -49,7 +49,7 @@ export function Mg1({ onClose }: { onClose?: () => void }) {
               <Row style={{ flexWrap: 'nowrap', padding: 10, borderRadius: 14, backgroundColor: cls === c.classId ? colors.primarySoft : 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: cls === c.classId ? colors.primary : 'rgba(255,255,255,0.9)' }}>
                 <Ionicons name={cls === c.classId ? 'radio-button-on' : 'radio-button-off'} size={22} color={cls === c.classId ? colors.primary : colors.muted} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '700', color: colors.text }}>{c.subjectName} · {c.classCode}</Text>
+                  <Text style={{ fontWeight: '600', color: colors.text }}>{c.subjectName} · {c.classCode}</Text>
                   <Muted>{c.lecturerName} · {c.semester}</Muted>
                 </View>
                 {c.alreadyPredicted ? <Badge label={`Đã đoán: ${c.predictedCount ?? '–'}`} fg={colors.success} bg={colors.successSoft} /> : null}

@@ -54,7 +54,7 @@ export default function MySubmissions() {
             <StatusBadge status={s.status} />
             <Muted>{fmtDate(s.createdAt)}</Muted>
           </Row>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{s.title}</Text>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>{s.title}</Text>
           <Row style={{ justifyContent: 'space-between' }}>
             <Muted>{[s.subject, s.className].filter(Boolean).join(' · ')} · {questionCountOf(s)} câu hỏi</Muted>
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -73,7 +73,7 @@ export default function MySubmissions() {
             <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={icon} size={18} color={colors.primary} />
             </View>
-            <View style={{ flex: 1 }}><Text style={{ fontWeight: '700', color: colors.text }}>{i + 1}. {title}</Text><Muted>{desc}</Muted></View>
+            <View style={{ flex: 1 }}><Text style={{ fontWeight: '600', color: colors.text }}>{i + 1}. {title}</Text><Muted>{desc}</Muted></View>
           </Row>
         ))}
       </Card>

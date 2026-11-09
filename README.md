@@ -24,7 +24,7 @@ src/
 ├─ modules/<tên>/       phần của MỘT người:  api/  components/  screens/<màn-hình>/index.tsx
 ├─ components/          giao diện dùng chung (button, card, field…)
 ├─ api/                 http.ts, backend.ts (lớp gọi API chung)
-├─ context/  hooks/  utils/  screens/home/
+├─ context/  hooks/  utils/
 └─ constants.ts  theme.ts  types.ts
 ```
 

@@ -21,11 +21,11 @@ function RootStack() {
   const signedIn = status === 'signedIn';
   return (
     <Stack screenOptions={screenOptions('')}>
-      {/* Chưa đăng nhập mà mở link riêng tư => về /login; đăng nhập xong => rời nhóm (auth) về trang chủ. */}
+      {/* Chưa đăng nhập mà mở link riêng tư => về /login; đăng nhập xong => rời nhóm (auth) về "/" (chuyển tiếp tới trang Cá nhân). */}
       <Stack.Protected guard={signedIn} redirectTo="/login">
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="create" options={{ headerShown: false, presentation: 'modal', contentStyle: { backgroundColor: '#fff' } }} />
-        <Stack.Screen name="posts/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="create" options={screenOptions('Tạo bài viết')} />
+        <Stack.Screen name="posts/[id]" options={screenOptions('Bài viết')} />
         {PRIVATE_ROUTES.map((name) => <Stack.Screen key={name} name={name} />)}
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>

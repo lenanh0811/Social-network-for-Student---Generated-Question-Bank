@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { doCheckIn, getCheckIn, getLeaderboard, listMyPredictions, listSubjects } from '@/modules/exam-bank/api/client';
@@ -10,13 +9,11 @@ import { GAME_META, describeData } from './meta';
 import { useLoad } from '@/hooks/use-load';
 import { colors, glass } from '@/theme';
 import { Badge } from '@/components/badge';
-import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Empty } from '@/components/empty';
 import { ErrorBox } from '@/components/error-box';
 import { fmtDate } from '@/utils/format-date';
-import { Glass } from '@/components/glass';
 import { H1, H2 } from '@/components/heading';
 import { Loading } from '@/components/loading';
 import { Muted } from '@/components/muted';
@@ -38,13 +35,16 @@ type Tab = 'play' | 'mine' | 'board';
 export default function Games() {
   const [tab, setTab] = useState<Tab>('play');
   const wide = useWindowDimensions().width >= 1100;
-  const narrowTabs: { value: Tab; label: string }[] = [{ value: 'play', label: '🎮 Chơi' }, { value: 'mine', label: '🧾 Lịch sử' }, { value: 'board', label: '🏆 Xếp hạng' }];
+  const narrowTabs: { value: Tab; label: string }[] = [{ value: 'play', label: 'Chơi' }, { value: 'mine', label: 'Lịch sử' }, { value: 'board', label: 'Xếp hạng' }];
   if (wide) {
     return (
       <Screen wide>
         <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
-          <HistoryButton />
-          <View style={{ flex: 1, gap: 12, minWidth: 0 }}><Hero /><Play wide /></View>
+          <View style={{ flex: 1, gap: 12, minWidth: 0 }}>
+            <Hero /><Play wide />
+            <H2>Lịch sử chơi gần đây</H2>
+            <HistoryList limit={6} />
+          </View>
           <View style={{ width: 340, gap: 12 }}><Board compact /></View>
         </View>
       </Screen>
@@ -54,7 +54,7 @@ export default function Games() {
     <Screen wide>
       <Hero />
       <View style={{ maxWidth: 520, width: '100%' }}><Segmented value={tab} onChange={setTab} options={narrowTabs} /></View>
-      {tab === 'play' ? <Play wide={false} /> : tab === 'mine' ? <Mine /> : <Board />}
+      {tab === 'play' ? <><Play wide={false} /><TopPreview onMore={() => setTab('board')} /></> : tab === 'mine' ? <Mine /> : <Board />}
     </Screen>
   );
 }
@@ -69,28 +69,57 @@ function Hero() {
   const pending = mine.data?.filter((p) => p.status === 'pending').length;
   const ci = checkin.data;
   const doIt = async () => { setBusy(true); try { checkin.setData(await doCheckIn()); } finally { setBusy(false); } };
-  return (
-    <View style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: glass.border, ...glass.shadow }}>
-      <LinearGradient colors={['#E0384F', '#9E1628', '#5B3AA8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 20, gap: 14 }}>
-        <View style={{ gap: 4 }}>
-          <Text style={{ color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>Thử tài dự đoán 🎯</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.9)' }}>Đoán đúng để nhận điểm thưởng và leo bảng xếp hạng cùng bạn học.</Text>
-        </View>
-        <Text style={{ color: '#fff', fontWeight: '600' }}>
-          {me ? `⭐ ${me.points} điểm   ·   🏆 Hạng ${me.rank}${me.topPercent !== undefined ? ` (top ${Math.round(me.topPercent)}%)` : ''}` : ' '}{pending ? `   ·   ⚡ ${pending} dự đoán chờ kết quả` : ''}
-        </Text>
-        {ci ? (
-          <Row style={{ gap: 10 }}>
-            <Pressable onPress={doIt} disabled={ci.checkedInToday || busy} style={{ opacity: ci.checkedInToday ? 0.7 : 1 }}>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{ci.checkedInToday ? '✓ Đã điểm danh hôm nay' : busy ? 'Đang điểm danh…' : '📅 Điểm danh +1 xu'}</Text>
-              </View>
-            </Pressable>
-            <Text style={{ color: 'rgba(255,255,255,0.9)' }}>🔥 Chuỗi {ci.streak} ngày</Text>
-          </Row>
-        ) : null}
-      </LinearGradient>
+  const stat = (label: string, value: string) => (
+    <View style={{ flex: 1, minWidth: 80, gap: 2 }}>
+      <Text style={{ fontSize: 22, fontWeight: '600', color: '#fff' }}>{value}</Text>
+      <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{label}</Text>
     </View>
+  );
+  return (
+    <View style={{ gap: 14, padding: 20, borderRadius: 24, backgroundColor: colors.primary }}>
+      <View style={{ gap: 2 }}>
+        <Text style={{ fontSize: 26, fontWeight: '700', color: '#fff', letterSpacing: -0.5 }}>Thử tài dự đoán</Text>
+        <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>Đoán đúng để nhận điểm thưởng và leo bảng xếp hạng.</Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        {stat('Điểm', me ? String(me.points) : '–')}
+        {stat('Hạng', me ? `#${me.rank}` : '–')}
+        {stat('Chờ kết quả', String(pending ?? 0))}
+        {ci ? stat('Chuỗi ngày', String(ci.streak)) : null}
+      </View>
+      {ci ? (
+        <Pressable onPress={doIt} disabled={ci.checkedInToday || busy} style={({ pressed }) => ({ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 16, borderRadius: 999, backgroundColor: ci.checkedInToday ? 'rgba(255,255,255,0.22)' : '#fff', opacity: pressed ? 0.85 : 1 })}>
+          <Ionicons name={ci.checkedInToday ? 'checkmark' : 'calendar-outline'} size={16} color={ci.checkedInToday ? '#fff' : colors.primary} />
+          <Text style={{ fontWeight: '600', fontSize: 13, color: ci.checkedInToday ? '#fff' : colors.primary }}>
+            {ci.checkedInToday ? 'Đã điểm danh hôm nay' : busy ? 'Đang điểm danh…' : 'Điểm danh +1 xu'}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** Top 3 xếp hạng học kỳ (màn hẹp) để trang không trống phần dưới. */
+function TopPreview({ onMore }: { onMore: () => void }) {
+  const { data } = useLoad(() => getLeaderboard('SEMESTER'));
+  const top = data?.entries.slice(0, 3) ?? [];
+  if (!top.length) return null;
+  return (
+    <>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <H2>Đang dẫn đầu</H2>
+        <Pressable onPress={onMore}><Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>Xem tất cả</Text></Pressable>
+      </Row>
+      <Card style={{ padding: 0, overflow: 'hidden' }}>
+        {top.map((e) => (
+          <Row key={e.userId} style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: glass.edge, flexWrap: 'nowrap', backgroundColor: e.isMe ? colors.primarySoft : 'transparent' }}>
+            <Text style={{ width: 34, fontSize: 16, textAlign: 'center', fontWeight: '600', color: [colors.accent, '#9AA0AB', '#C4824B'][e.rank - 1] ?? colors.muted }}>{e.rank}</Text>
+            <Text style={{ flex: 1, fontWeight: '600', color: colors.text }} numberOfLines={1}>{e.name}{e.isMe ? ' (bạn)' : ''}</Text>
+            <Text style={{ fontWeight: '600', color: colors.primary }}>{e.points} đ</Text>
+          </Row>
+        ))}
+      </Card>
+    </>
   );
 }
 
@@ -104,27 +133,22 @@ function Play({ wide }: { wide: boolean }) {
         {GAMES.map((x) => {
           const m = GAME_META[x.game];
           return (
-            <Pressable key={x.game} onPress={() => setSel(x.game)} style={({ pressed }) => ({ width: wide ? '32%' : '48%', flexGrow: 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-              <Card style={{ gap: 10, minHeight: 168 }}>
-                <View style={{ width: 52, height: 52, borderRadius: 18, overflow: 'hidden' }}>
-                  <LinearGradient colors={[m.color, m.color + 'AA']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name={m.icon} size={28} color="#fff" />
-                  </LinearGradient>
+            <Pressable key={x.game} onPress={() => setSel(x.game)} style={({ pressed }) => ({ width: wide ? '32%' : '48%', flexGrow: 1, minWidth: 240, opacity: pressed ? 0.8 : 1 })}>
+              <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft }}>
+                  <Ionicons name={m.icon} size={24} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontWeight: '800', fontSize: 15, color: colors.text }}>{m.no}. {m.title}</Text>
+                  <Text style={{ fontWeight: '600', fontSize: 15, color: colors.text }} numberOfLines={1}>{m.title}</Text>
                   <Muted>{m.short}</Muted>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary, marginTop: 2 }}>{x.reward}</Text>
                 </View>
-                <Row style={{ justifyContent: 'space-between' }}>
-                  <Badge label={x.reward} fg={colors.warning} bg={colors.warningSoft} />
-                  <Ionicons name="play-circle" size={26} color={m.color} />
-                </Row>
+                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
               </Card>
             </Pressable>
           );
         })}
       </View>
-      <Muted style={{ textAlign: 'center' }}>Chạm vào một trò chơi để xem hướng dẫn và bắt đầu.</Muted>
       <Modal visible={!!g} transparent animationType="fade" onRequestClose={() => setSel(undefined)}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16, backgroundColor: 'rgba(20,10,30,0.45)' }}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setSel(undefined)} accessibilityLabel="Đóng" />
@@ -171,28 +195,7 @@ function Mine() {
   );
 }
 
-/** Nút nhỏ “Lịch sử chơi” bên trái; bấm mới mở bảng, chạm một dòng để xem chi tiết. */
-function HistoryButton() {
-  const [open, setOpen] = useState(false);
-  return (
-    <View style={{ width: 150, zIndex: 50 }}>
-      <Button small variant={open ? 'primary' : 'soft'} icon="time" title="Lịch sử chơi" onPress={() => setOpen(!open)} />
-      {open ? (
-        <View style={{ position: 'absolute', top: 48, left: 0, width: 340, maxHeight: 560, zIndex: 60 }}>
-          <Glass strong intensity={80} style={{ borderRadius: 24, padding: 12, gap: 10 }}>
-            <Row style={{ justifyContent: 'space-between' }}>
-              <H2>Lịch sử chơi</H2>
-              <Ionicons name="close-circle" size={24} color={colors.muted} onPress={() => setOpen(false)} />
-            </Row>
-            <ScrollView style={{ maxHeight: 480 }}><HistoryList /></ScrollView>
-          </Glass>
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-function HistoryList() {
+function HistoryList({ limit }: { limit?: number }) {
   const { data, loading, error, reload } = useLoad(listMyPredictions);
   const [open, setOpen] = useState<string>();
   if (loading && !data) return <Loading />;
@@ -200,14 +203,14 @@ function HistoryList() {
   if (!data?.length) return <Empty icon="game-controller-outline" text="Bạn chưa chơi trò nào." />;
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
-      {data.map((p) => {
+      {(limit ? data.slice(0, limit) : data).map((p) => {
         const m = GAME_META[p.game]; const b = resultBadge(p); const on = open === p.id;
         return (
           <Pressable key={p.id} onPress={() => setOpen(on ? undefined : p.id)} style={{ padding: 14, gap: 8, borderBottomWidth: 1, borderBottomColor: glass.edge, backgroundColor: on ? 'rgba(255,255,255,0.5)' : 'transparent' }}>
             <Row style={{ flexWrap: 'nowrap', justifyContent: 'space-between' }}>
               <Row style={{ gap: 8, flexShrink: 1, flexWrap: 'nowrap' }}>
                 <Ionicons name={m.icon} size={18} color={m.color} />
-                <Text numberOfLines={1} style={{ fontWeight: '700', color: colors.text, flexShrink: 1 }}>{m.title}</Text>
+                <Text numberOfLines={1} style={{ fontWeight: '600', color: colors.text, flexShrink: 1 }}>{m.title}</Text>
               </Row>
               <Row style={{ gap: 6, flexWrap: 'nowrap' }}>
                 <Badge label={b.label} fg={b.fg} bg={b.bg} />
@@ -216,8 +219,8 @@ function HistoryList() {
             </Row>
             {on ? (
               <View style={{ gap: 4 }}>
-                <Text style={{ color: colors.text }}>Dự đoán của bạn: <Text style={{ fontWeight: '800' }}>{describeData(p.prediction) || '—'}</Text></Text>
-                {p.actual ? <Text style={{ color: colors.text }}>Kết quả thực tế: <Text style={{ fontWeight: '800', color: colors.blue }}>{describeData(p.actual)}</Text></Text> : null}
+                <Text style={{ color: colors.text }}>Dự đoán của bạn: <Text style={{ fontWeight: '600' }}>{describeData(p.prediction) || '—'}</Text></Text>
+                {p.actual ? <Text style={{ color: colors.text }}>Kết quả thực tế: <Text style={{ fontWeight: '600', color: colors.blue }}>{describeData(p.actual)}</Text></Text> : null}
                 <Muted>Đặt ngày {fmtDate(p.createdAt)}{p.resolvedAt ? ` · chốt ${fmtDate(p.resolvedAt)}` : ''}</Muted>
               </View>
             ) : null}
@@ -235,10 +238,8 @@ function Board({ compact }: { compact?: boolean }) {
   const subjects = useLoad(listSubjects);
   const sid = period === 'SUBJECT' ? subject ?? subjects.data?.[0]?.id : undefined;
   const { data, loading, error, reload } = useLoad(() => (period === 'SUBJECT' && !sid ? Promise.resolve(undefined) : getLeaderboard(period, sid)), [period, sid]);
-  const medal = ['🥇', '🥈', '🥉'];
+  const medalColor = [colors.accent, '#9AA0AB', '#C4824B'];
   const list = data?.entries ?? [];
-  const podium = [list[1], list[0], list[2]].filter(Boolean);
-  const height = (rank: number) => (rank === 1 ? 120 : rank === 2 ? 92 : 72);
   return (
     <>
       <Row style={{ gap: 6 }}><Ionicons name="trophy" size={22} color={colors.accent} /><H1>Xếp hạng</H1></Row>
@@ -246,28 +247,12 @@ function Board({ compact }: { compact?: boolean }) {
       {period === 'SUBJECT' ? <Row>{subjects.data?.map((s) => <Chip key={s.id} label={s.name} active={sid === s.id} onPress={() => setSubject(s.id)} />)}</Row> : null}
       {loading && !data ? <Loading /> : error ? <ErrorBox message={error} onRetry={reload} /> : (
         <>
-          {!compact && podium.length ? (
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 10 }}>
-              {podium.map((e) => (
-                <View key={e.userId} style={{ flex: 1, maxWidth: 200, alignItems: 'center', gap: 6 }}>
-                  <Text style={{ fontSize: 30 }}>{medal[e.rank - 1]}</Text>
-                  <Text numberOfLines={1} style={{ fontWeight: '700', color: colors.text }}>{e.name}{e.isMe ? ' (bạn)' : ''}</Text>
-                  <View style={{ width: '100%', height: height(e.rank), borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: glass.border }}>
-                    <LinearGradient colors={e.rank === 1 ? ['#F7C948', '#E8A317'] : e.rank === 2 ? ['#D5D8DE', '#A9AEB8'] : ['#E5B58A', '#C4824B']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 20 }}>{e.points}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>điểm</Text>
-                    </LinearGradient>
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : null}
           <Card style={{ padding: 0, overflow: 'hidden' }}>
             {!list.length ? <Empty icon="trophy-outline" text="Chưa có ai trên bảng xếp hạng." /> : list.map((e) => (
-              <Row key={e.userId} style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: glass.edge, backgroundColor: e.isMe ? 'rgba(232,163,23,0.18)' : 'transparent', flexWrap: 'nowrap' }}>
-                <Text style={{ width: 34, fontSize: 18, textAlign: 'center', fontWeight: '800', color: colors.text }}>{medal[e.rank - 1] ?? e.rank}</Text>
-                <View style={{ flex: 1 }}><Text style={{ fontWeight: '700', color: colors.text }}>{e.name}{e.isMe ? ' (bạn)' : ''}</Text>{e.userCode ? <Muted>{e.userCode}</Muted> : null}</View>
-                <Text style={{ fontWeight: '800', color: colors.primary, fontSize: 16 }}>{e.points} đ</Text>
+              <Row key={e.userId} style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: glass.edge, backgroundColor: e.isMe ? colors.primarySoft : 'transparent', flexWrap: 'nowrap' }}>
+                <Text style={{ width: 34, fontSize: 16, textAlign: 'center', fontWeight: '600', color: medalColor[e.rank - 1] ?? colors.muted }}>{e.rank}</Text>
+                <View style={{ flex: 1 }}><Text style={{ fontWeight: '600', color: colors.text }}>{e.name}{e.isMe ? ' (bạn)' : ''}</Text>{e.userCode ? <Muted>{e.userCode}</Muted> : null}</View>
+                <Text style={{ fontWeight: '600', color: colors.primary, fontSize: 16 }}>{e.points} đ</Text>
               </Row>
             ))}
           </Card>

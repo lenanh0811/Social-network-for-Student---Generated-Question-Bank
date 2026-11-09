@@ -34,7 +34,7 @@ export default function Exams() {
       {data?.map((e) => (
         <Card key={e.id} onPress={() => go(`/exam-bank/exam/${e.id}`)}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text, flexShrink: 1 }}>{e.title}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text, flexShrink: 1 }}>{e.title}</Text>
             <Muted>{fmtDate(e.createdAt)}</Muted>
           </Row>
           <Row style={{ justifyContent: 'space-between' }}>

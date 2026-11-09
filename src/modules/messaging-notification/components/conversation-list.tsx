@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   title: {
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: "600",
     color: colors.text,
     marginBottom: 12,
   },

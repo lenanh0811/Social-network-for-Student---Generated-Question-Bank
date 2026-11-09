@@ -24,7 +24,7 @@ export function AuthShell({ title, subtitle, children, footer }: {
           <View style={s.col}>
             <View style={s.brand}>
               <LinearGradient colors={['#E0384F', colors.primaryDark]} style={s.logo}>
-                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 30 }}>{BRAND.initial}</Text>
+                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 30 }}>{BRAND.initial}</Text>
               </LinearGradient>
               <Text style={s.brandText}>{BRAND.first}<Text style={{ color: colors.primary }}>{BRAND.second}</Text></Text>
               <Muted>Mạng xã hội học tập cho sinh viên</Muted>
@@ -66,7 +66,7 @@ export function PasswordStrength({ value }: { value: string }) {
       {[0, 1, 2, 3, 4].map((i) => (
         <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i < score ? level.color : 'rgba(0,0,0,0.08)' }} />
       ))}
-      <Text style={{ fontSize: 12, fontWeight: '700', color: level.color, width: 72, textAlign: 'right' }}>{level.label}</Text>
+      <Text style={{ fontSize: 12, fontWeight: '600', color: level.color, width: 72, textAlign: 'right' }}>{level.label}</Text>
     </View>
   );
 }
@@ -92,7 +92,7 @@ export function Notice({ tone = 'danger', icon, children, action }: {
 }
 
 export const TextLink = ({ title, onPress }: { title: string; onPress: () => void }) => (
-  <Pressable onPress={onPress} hitSlop={6}><Text style={{ color: colors.primary, fontWeight: '700' }}>{title}</Text></Pressable>
+  <Pressable onPress={onPress} hitSlop={6}><Text style={{ color: colors.primary, fontWeight: '600' }}>{title}</Text></Pressable>
 );
 
 /** Ô nhập mã 6 số: một TextInput ẩn phủ lên 6 ô hiển thị (dán mã/OTP tự động vẫn hoạt động). */
@@ -131,7 +131,7 @@ export function Avatar({ name, size = 72 }: { name: string; size?: number }) {
   const initials = name.trim().split(/\s+/).slice(-2).map((w) => w[0]).join('').toUpperCase() || '?';
   return (
     <LinearGradient colors={['#E0384F', colors.primaryDark]} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' }}>
-      <Text style={{ color: '#fff', fontWeight: '800', fontSize: size * 0.36 }}>{initials}</Text>
+      <Text style={{ color: '#fff', fontWeight: '600', fontSize: size * 0.36 }}>{initials}</Text>
     </LinearGradient>
   );
 }
@@ -155,7 +155,7 @@ export function ActionRow({ icon, label, onPress, danger, last }: {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.action, !last && s.divider, pressed && { opacity: 0.6 }]} accessibilityRole="button">
       <Ionicons name={icon} size={22} color={danger ? colors.danger : colors.primary} />
-      <Text style={{ flex: 1, fontWeight: '700', fontSize: 15, color: fg }}>{label}</Text>
+      <Text style={{ flex: 1, fontWeight: '600', fontSize: 15, color: fg }}>{label}</Text>
       {danger ? null : <Ionicons name="chevron-forward" size={18} color={colors.muted} />}
     </Pressable>
   );
@@ -166,14 +166,14 @@ const s = StyleSheet.create({
   col: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: space.lg },
   brand: { alignItems: 'center', gap: 6 },
   logo: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
-  brandText: { fontSize: 28, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
+  brandText: { fontSize: 28, fontWeight: '600', color: colors.text, letterSpacing: -0.5 },
   card: { borderRadius: 28, padding: space.xl, gap: space.md },
-  title: { fontSize: 24, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
+  title: { fontSize: 24, fontWeight: '600', color: colors.text, letterSpacing: -0.4 },
   eye: { position: 'absolute', right: 14, top: 37 },
   notice: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: radius.lg, alignItems: 'flex-start' },
   codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   codeBox: { width: 46, height: 56, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.8)', alignItems: 'center', justifyContent: 'center' },
-  codeText: { fontSize: 24, fontWeight: '800', color: colors.text },
+  codeText: { fontSize: 24, fontWeight: '600', color: colors.text },
   info: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.12)' },

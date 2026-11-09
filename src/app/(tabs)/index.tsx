@@ -1,5 +1,6 @@
-import { Home } from '@/screens/home';
+import { Redirect } from 'expo-router';
 
-export default function HomeScreen() {
-  return <Home />;
+/** Không còn trang chủ: "/" chuyển thẳng tới trang Cá nhân (đích sau khi đăng nhập). */
+export default function Index() {
+  return <Redirect href="/profile" />;
 }

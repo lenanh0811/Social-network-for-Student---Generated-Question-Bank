@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import type { User } from '@/types';
 
 export type MediaType = 'image' | 'video';
 export type PostType = 'SOCIAL_POST' | 'LEARNING_VIDEO' | 'QUESTION_APPROVED_NOTIFICATION';
 export type SearchType = 'ALL' | 'POST' | 'USER' | 'QUESTION';
 export type ReactionType = 'LIKE' | 'LOVE' | 'WOW';
+=======
+export type MediaType = 'image' | 'video';
+export type PostType = 'SOCIAL_POST' | 'LEARNING_VIDEO' | 'QUESTION_APPROVED_NOTIFICATION';
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
 
 export interface MediaAsset {
   uri: string;
@@ -12,6 +17,7 @@ export interface MediaAsset {
   mediaType: MediaType;
   size?: number;
   url?: string;
+<<<<<<< HEAD
   key?: string;
   width?: number;
   height?: number;
@@ -28,6 +34,16 @@ export interface Subject {
 export interface SocialUser extends Pick<User, 'id' | 'name'> {
   avatarUrl?: string;
   frameUrl?: string;
+=======
+  /** object_key server trả về khi tải lên. */
+  key?: string;
+}
+
+export interface SocialUser {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
 }
 
 export interface Post {
@@ -36,17 +52,25 @@ export interface Post {
   author: SocialUser;
   createdAt: string;
   mediaUrls: string[];
+<<<<<<< HEAD
   visibility?: 'PUBLIC' | 'ONLY_ME' | 'FRIENDS';
   postType?: PostType;
   subjectId?: string;
   subjectName?: string;
   subjectCode?: string;
   sessionId?: string;
+=======
+  postType?: PostType;
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
   isEdited?: boolean;
   isOwner?: boolean;
   reactionCount: number;
   commentCount: number;
+<<<<<<< HEAD
   myReaction: ReactionType | 'NONE';
+=======
+  myReaction: 'LIKE' | 'NONE';
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
 }
 
 export interface Comment {
@@ -58,6 +82,7 @@ export interface Comment {
   parentCommentId?: string;
   isHidden?: boolean;
   isOwner?: boolean;
+<<<<<<< HEAD
   replies?: (Comment | string)[];
 }
 
@@ -66,6 +91,9 @@ export interface SearchQuestion {
   subjectName: string;
   content: string;
   difficulty?: string;
+=======
+  replies?: Comment[];
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
 }
 
 export interface FeedPage {
@@ -73,6 +101,7 @@ export interface FeedPage {
   after?: string;
   hasNext: boolean;
 }
+<<<<<<< HEAD
 
 export interface CommentPage {
   comments: Comment[];
@@ -87,3 +116,5 @@ export interface SearchResults {
   after?: string;
   hasNext: boolean;
 }
+=======
+>>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f

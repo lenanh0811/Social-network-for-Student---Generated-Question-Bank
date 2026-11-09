@@ -170,8 +170,8 @@ function Stat({ value, label }: { value: number; label: string }) {
 const s = StyleSheet.create({
   stats: { flexDirection: 'row', justifyContent: 'space-around' },
   stat: { alignItems: 'center', gap: 2, flex: 1 },
-  statValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  statValue: { fontSize: 20, fontWeight: '600', color: colors.text },
   statLabel: { fontSize: 12, color: colors.muted },
-  title: { fontSize: 16, fontWeight: '700', color: colors.text },
+  title: { fontSize: 16, fontWeight: '600', color: colors.text },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
 });

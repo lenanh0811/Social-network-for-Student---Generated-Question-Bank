@@ -57,7 +57,7 @@ export default function QuestionAi() {
           <View style={{ width: '100%', maxWidth: 720, gap: 12 }}>
             <Card>
               <Muted>Câu hỏi hiện tại</Muted>
-              <Text style={{ fontWeight: '700', fontSize: 15, color: colors.text }}>{q.content}</Text>
+              <Text style={{ fontWeight: '600', fontSize: 15, color: colors.text }}>{q.content}</Text>
               {q.options.map((o, i) => <Text key={i} style={{ color: i === q.correctIndex ? colors.success : colors.text }}>{LETTERS[i]}. {o}{i === q.correctIndex ? '  ✓' : ''}</Text>)}
               {q.explanation ? <Muted>Giải thích: {q.explanation}</Muted> : null}
             </Card>
@@ -68,14 +68,14 @@ export default function QuestionAi() {
                     <View style={{ backgroundColor: colors.primary, borderRadius: 20, borderBottomRightRadius: 6, paddingVertical: 10, paddingHorizontal: 14 }}><Text style={{ color: '#fff' }}>{m.text}</Text></View>
                   ) : (
                     <Glass strong style={{ borderRadius: 20, borderBottomLeftRadius: 6, padding: 12, gap: 8 }}>
-                      <Row style={{ gap: 6 }}><Ionicons name="sparkles" size={16} color={colors.accent} /><Text style={{ fontWeight: '700', color: colors.text }}>AI</Text></Row>
+                      <Row style={{ gap: 6 }}><Ionicons name="sparkles" size={16} color={colors.accent} /><Text style={{ fontWeight: '600', color: colors.text }}>AI</Text></Row>
                       <Text style={{ color: colors.text }}>{m.text}</Text>
                       {m.suggestion ? (
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 14, padding: 10, gap: 4, borderWidth: 1, borderColor: glass.edge }}>
-                          <Text style={{ fontWeight: '700', color: colors.text }}>{m.suggestion.content}</Text>
+                          <Text style={{ fontWeight: '600', color: colors.text }}>{m.suggestion.content}</Text>
                           {m.suggestion.options.map((o, i) => <Text key={i} style={{ color: i === m.suggestion!.correctIndex ? colors.success : colors.text }}>{LETTERS[i]}. {o}</Text>)}
                           {m.suggestion.explanation ? <Muted>Giải thích: {m.suggestion.explanation}</Muted> : null}
-                          {m.applied ? <Text style={{ color: colors.success, fontWeight: '700' }}>✓ Đã áp dụng vào câu hỏi</Text>
+                          {m.applied ? <Text style={{ color: colors.success, fontWeight: '600' }}>✓ Đã áp dụng vào câu hỏi</Text>
                             : <Button small title="Áp dụng phiên bản này" icon="checkmark" variant="success" loading={applying === m.id} onPress={() => apply(m.id, m.suggestion!)} />}
                         </View>
                       ) : null}

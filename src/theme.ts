@@ -30,4 +30,3 @@ export const glass = {
   blur: 40,
   shadow: { shadowColor: '#2A1A3A', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } },
 };
-export const bgGradient = ['#FFF1F3', '#F3EEFF', '#E9F1FF'] as const;

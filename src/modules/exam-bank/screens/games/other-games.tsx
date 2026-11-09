@@ -39,7 +39,7 @@ export function Mg5({ onClose }: { onClose?: () => void }) {
     <GameShell onClose={onClose} color={m.color} no={m.no} title={m.title} icon={m.icon} reward="Lỗi được xác nhận → cộng điểm" rule={rule}>
       {isMock ? <MockReport /> : (
         <Card style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
-          <Text style={{ color: colors.text }}>Mở một câu hỏi bất kỳ, vào tab <Text style={{ fontWeight: '800' }}>Đánh giá</Text> rồi bấm <Text style={{ fontWeight: '800' }}>“Báo câu này bị lỗi”</Text> kèm mô tả lỗi.</Text>
+          <Text style={{ color: colors.text }}>Mở một câu hỏi bất kỳ, vào tab <Text style={{ fontWeight: '600' }}>Đánh giá</Text> rồi bấm <Text style={{ fontWeight: '600' }}>“Báo câu này bị lỗi”</Text> kèm mô tả lỗi.</Text>
         </Card>
       )}
     </GameShell>

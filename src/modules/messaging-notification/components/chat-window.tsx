@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   headerName: {
     flex: 1,
     fontSize: 17,
-    fontWeight: "700",
+    fontWeight: "600",
     color: colors.text,
   },
   list: { flex: 1 },
@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  placeholderTitle: { fontSize: 18, fontWeight: "700", color: colors.text },
+  placeholderTitle: { fontSize: 18, fontWeight: "600", color: colors.text },
   placeholderSub: { color: colors.muted },
 });

@@ -41,7 +41,7 @@ export default function QuestionDetail() {
       <Header title="Câu hỏi" />
       <Card>
         <Row>{q.difficulty ? <DifficultyBadge d={q.difficulty} /> : null}<Muted>{[q.topic, q.subject].filter(Boolean).join(' · ')}</Muted></Row>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{q.content}</Text>
+        <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>{q.content}</Text>
         <Muted>Đóng góp bởi {q.authorName}</Muted>
         {role === 'lecturer' ? (
           <Row>
@@ -72,7 +72,7 @@ function AnswerTab({ id, options }: { id: string; options: string[] }) {
             borderColor: isCorrect ? colors.success : isWrong ? colors.danger : pick === i ? colors.primary : colors.border,
           }}>
             <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: pick === i ? colors.primary : colors.bg }}>
-              <Text style={{ fontWeight: '700', color: pick === i ? '#fff' : colors.text }}>{LETTERS[i]}</Text>
+              <Text style={{ fontWeight: '600', color: pick === i ? '#fff' : colors.text }}>{LETTERS[i]}</Text>
             </View>
             <Text style={{ flex: 1, fontSize: 15, color: colors.text }}>{o}</Text>
             {isCorrect ? <Ionicons name="checkmark-circle" size={22} color={colors.success} /> : isWrong ? <Ionicons name="close-circle" size={22} color={colors.danger} /> : null}
@@ -81,7 +81,7 @@ function AnswerTab({ id, options }: { id: string; options: string[] }) {
       })}
       {res ? (
         <Card style={{ backgroundColor: res.correct ? colors.successSoft : colors.dangerSoft, borderColor: res.correct ? colors.success : colors.danger }}>
-          <Text style={{ fontWeight: '800', fontSize: 16, color: res.correct ? colors.success : colors.danger }}>{res.correct ? 'Chính xác! 🎉' : `Chưa đúng — đáp án đúng là ${LETTERS[res.correctIndex]}`}</Text>
+          <Text style={{ fontWeight: '600', fontSize: 16, color: res.correct ? colors.success : colors.danger }}>{res.correct ? 'Chính xác! 🎉' : `Chưa đúng — đáp án đúng là ${LETTERS[res.correctIndex]}`}</Text>
           {res.explanation ? <Text style={{ color: colors.text }}>{res.explanation}</Text> : null}
         </Card>
       ) : <Button title="Nộp đáp án" disabled={pick === undefined} loading={busy} onPress={submit} />}
@@ -97,8 +97,8 @@ function StatsTab({ id, options, correct }: { id: string; options: string[]; cor
   return (
     <Card>
       <Row style={{ justifyContent: 'space-around' }}>
-        <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '800', color: colors.primary }}>{data.totalAnswers}</Text><Muted>lượt trả lời</Muted></View>
-        <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '800', color: colors.success }}>{Math.round(data.correctRate * 100)}%</Text><Muted>trả lời đúng</Muted></View>
+        <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '600', color: colors.primary }}>{data.totalAnswers}</Text><Muted>lượt trả lời</Muted></View>
+        <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '600', color: colors.success }}>{Math.round(data.correctRate * 100)}%</Text><Muted>trả lời đúng</Muted></View>
       </Row>
       <H2>Phân bố lựa chọn</H2>
       {options.map((o, i) => (
@@ -106,7 +106,7 @@ function StatsTab({ id, options, correct }: { id: string; options: string[]; cor
           <Text numberOfLines={1} style={{ fontSize: 13, color: colors.text }}>{LETTERS[i]}. {o}{i === correct ? '  ✓' : ''}</Text>
           <Row style={{ flexWrap: 'nowrap' }}>
             <Bar ratio={data.distribution[i] / max} color={i === correct ? colors.success : colors.blue} />
-            <Text style={{ width: 28, textAlign: 'right', fontWeight: '700' }}>{data.distribution[i]}</Text>
+            <Text style={{ width: 28, textAlign: 'right', fontWeight: '600' }}>{data.distribution[i]}</Text>
           </Row>
         </View>
       ))}
@@ -134,7 +134,7 @@ function RatingsTab({ id }: { id: string }) {
       {data && !data.length ? <Muted style={{ textAlign: 'center' }}>Chưa có đánh giá nào.</Muted> : null}
       {data?.map((r) => (
         <Card key={r.id}>
-          <Row style={{ justifyContent: 'space-between' }}><Text style={{ fontWeight: '700' }}>{r.userName}</Text><Muted>{fmtDate(r.createdAt)}</Muted></Row>
+          <Row style={{ justifyContent: 'space-between' }}><Text style={{ fontWeight: '600' }}>{r.userName}</Text><Muted>{fmtDate(r.createdAt)}</Muted></Row>
           <Stars value={r.stars} size={14} />
           {r.comment ? <Text style={{ color: colors.text }}>{r.comment}</Text> : null}
         </Card>

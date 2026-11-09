@@ -42,7 +42,7 @@ export function QuestionEditor({ value, onChange, showErrors, showSource }: { va
             <Pressable onPress={() => set('correctIndex', i)} hitSlop={8}>
               <Ionicons name={value.correctIndex === i ? 'checkmark-circle' : 'ellipse-outline'} size={26} color={value.correctIndex === i ? colors.success : colors.muted} />
             </Pressable>
-            <Text style={{ fontWeight: '700', width: 18 }}>{LETTERS[i]}</Text>
+            <Text style={{ fontWeight: '600', width: 18 }}>{LETTERS[i]}</Text>
             <TextInput
               value={o} onChangeText={(t) => setOpt(i, t)} placeholder={`Đáp án ${LETTERS[i]}`} placeholderTextColor={colors.muted}
               style={{ flex: 1, borderWidth: 1, borderColor: showErrors && !o.trim() ? colors.danger : colors.border, borderRadius: radius.md, padding: 10, backgroundColor: 'rgba(255,255,255,0.65)', color: colors.text }}

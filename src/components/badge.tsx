@@ -3,7 +3,7 @@ import { radius } from '@/theme';
 
 export function Badge({ label, fg, bg }: { label: string; fg: string; bg: string }) {
   return (
-    <View style={[styles.badge, { backgroundColor: bg }]}><Text style={{ color: fg, fontSize: 12, fontWeight: '700' }}>{label}</Text></View>
+    <View style={[styles.badge, { backgroundColor: bg }]}><Text style={{ color: fg, fontSize: 12, fontWeight: '600' }}>{label}</Text></View>
   );
 }
 

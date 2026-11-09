@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { AuthError } from '@/modules/auth-user/api/types';
 import { Notice } from '@/modules/auth-user/components/auth-ui';
 import { report } from '@/modules/relationship-privacy/api/client';
 import type { ReportResult, ReportTarget, ViolationType } from '@/modules/relationship-privacy/api/types';
@@ -50,8 +49,7 @@ export default function ReportScreen() {
     try {
       setResult(await report({ targetType, targetId: params.targetId, violationType: type, description }));
     } catch (err) {
-      if (err instanceof AuthError && err.fields?.description) setErrors({ description: err.fields.description });
-      else setFormError((err as Error).message);
+      setFormError((err as Error).message);
     } finally {
       setBusy(false);
     }
@@ -78,7 +76,7 @@ export default function ReportScreen() {
     <Screen>
       <Header title="Báo cáo vi phạm" />
       <Muted>
-        Bạn đang báo cáo {TARGET[targetType]}{params.name ? <Text style={{ fontWeight: '700', color: colors.text }}> {params.name}</Text> : null}.
+        Bạn đang báo cáo {TARGET[targetType]}{params.name ? <Text style={{ fontWeight: '600', color: colors.text }}> {params.name}</Text> : null}.
         Báo cáo sai sự thật nhiều lần có thể khiến tài khoản của bạn bị hạn chế.
       </Muted>
       {formError ? <Notice>{formError}</Notice> : null}
@@ -123,6 +121,6 @@ export default function ReportScreen() {
 const s = StyleSheet.create({
   option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  label: { fontSize: 15, fontWeight: '700', color: colors.text },
+  label: { fontSize: 15, fontWeight: '600', color: colors.text },
   hint: { fontSize: 12, color: colors.muted },
 });
