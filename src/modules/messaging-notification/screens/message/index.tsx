@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { bgGradient } from "@/theme";
+import { colors } from "@/theme";
 import { ConversationItemData, MessageItemData } from "@/modules/messaging-notification/api/types/types";
 import { GlassCard } from "@/modules/messaging-notification/components/glass-card";
 import { ConversationList } from "@/modules/messaging-notification/components/conversation-list";
@@ -98,7 +97,7 @@ export default function MessageScreen() {
   );
 
   return (
-    <LinearGradient colors={bgGradient} style={styles.fill}>
+    <View style={[styles.fill, { backgroundColor: colors.bg }]}>
       <View style={[styles.root, { paddingTop: HEADER_HEIGHT + 16 }]}>
         {isWide ? (
           <>
@@ -111,7 +110,7 @@ export default function MessageScreen() {
           list
         )}
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 

@@ -8,7 +8,7 @@ export const screenOptions = (title: string) => ({
   title,
   headerTransparent: true,
   headerTintColor: colors.primary,
-  headerTitleStyle: { fontWeight: '700' as const, color: colors.text },
+  headerTitleStyle: { fontWeight: '600' as const, color: colors.text },
   headerShadowVisible: false,
   headerBackground: () => <BlurView intensity={60} tint="light" style={[StyleSheet.absoluteFill, { borderBottomWidth: 1, borderBottomColor: glass.border, backgroundColor: 'rgba(255,255,255,0.45)' }]} />,
 });

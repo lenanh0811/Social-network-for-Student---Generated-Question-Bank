@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderColor: glass.border,
   },
   body: { flex: 1 },
-  name: { fontSize: 16, fontWeight: "700", color: colors.text },
+  name: { fontSize: 16, fontWeight: "600", color: colors.text },
   preview: { fontSize: 14, color: colors.muted, marginTop: 2 },
   previewUnread: { color: colors.text, fontWeight: "600" },
   meta: { alignItems: "flex-end", gap: 6 },
@@ -69,5 +69,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: { color: colors.card, fontSize: 12, fontWeight: "700" },
+  badgeText: { color: colors.card, fontSize: 12, fontWeight: "600" },
 });

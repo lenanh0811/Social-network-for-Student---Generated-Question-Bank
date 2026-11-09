@@ -6,8 +6,6 @@ import type {
   MediaAsset,
   Post,
   PostType,
-  SearchResults,
-  SearchType,
   SocialUser,
 } from './types';
 
@@ -306,30 +304,18 @@ export const socialApi = {
     };
   },
 
-  async search(query: string, type: SearchType = 'ALL', after?: string, limit = 20): Promise<SearchResults> {
-    const data = await request<unknown>(
-      `/search${toQuery({ query, type, after, limit: String(limit) })}`,
-    );
-    // Swagger: data.items[] là danh sách trộn, mỗi phần tử có một trong các khoá post / user / question.
+  /** Tìm bài viết: GET /search?type=POST. Swagger: data.items[] mỗi phần tử có khoá `post`. */
+  async searchPosts(query: string, after?: string, limit = 20): Promise<FeedPage> {
+    const data = await request<unknown>(`/search${toQuery({ query, type: 'POST', after, limit: String(limit) })}`);
     const items = asList(asRecord(data).items).map(asRecord);
-    const pick = (key: string) => items.map((item) => item[key]).filter((value) => value !== null && value !== undefined);
-    return {
-      posts: pick('post').map((value) => {
+    const posts = items
+      .map((item) => item.post)
+      .filter((value) => value !== null && value !== undefined)
+      .map((value) => {
         const post = asRecord(value);
         return mapPost(post, { user_id: post.author_id, full_name: post.author_name, avatar_url: post.author_avatar_url });
-      }),
-      users: pick('user').map((user) => mapUser(user)),
-      questions: pick('question').map((value) => {
-        const question = asRecord(value);
-        return {
-          id: String(question.question_id ?? question.id ?? ''),
-          subjectName: String(question.subject_name ?? ''),
-          content: String(question.content ?? ''),
-          difficulty: typeof question.difficulty === 'string' ? question.difficulty : undefined,
-        };
-      }),
-      ...parsePage(data),
-    };
+      });
+    return { posts, ...parsePage(data) };
   },
 
   async uploadMedia(asset: MediaAsset): Promise<MediaAsset> {

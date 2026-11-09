@@ -1,143 +1,87 @@
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
+import { Screen } from '@/components/screen';
+import { Segmented } from '@/components/segmented';
+import { useLoad } from '@/hooks/use-load';
+import { listSubjects } from '@/modules/exam-bank/api/client';
 import { socialApi } from '@/modules/social-score/api/social-api';
 import type { MediaAsset, Post, PostType } from '@/modules/social-score/api/types';
 import { MediaUpload } from '@/modules/social-score/components/media-upload';
+import { notify } from '@/modules/social-score/utils/dialog';
 import { wordCount } from '@/modules/social-score/utils/text';
+import { colors } from '@/theme';
 
 const MAX_POST_WORDS = 500;
-const POST_TYPES: { type: PostType; label: string }[] = [
-  { type: 'SOCIAL_POST', label: 'Bài viết' },
-  { type: 'LEARNING_VIDEO', label: 'Video học tập' },
+const POST_TYPES: { value: PostType; label: string }[] = [
+  { value: 'SOCIAL_POST', label: 'Bài viết' },
+  { value: 'LEARNING_VIDEO', label: 'Video học tập' },
 ];
 
-export function CreatePostScreen({
-  onCancel,
-  onCreated,
-}: {
-  onCancel: () => void;
-  onCreated: (post: Post) => void;
-}) {
+/** Tạo bài viết (POST /posts). Môn học chọn từ danh sách; nếu không tải được danh sách thì nhập ID tay. */
+export function CreatePostScreen({ onCreated }: { onCreated: (post: Post) => void }) {
+  const subjects = useLoad(listSubjects);
   const [content, setContent] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [postType, setPostType] = useState<PostType>('SOCIAL_POST');
   const [media, setMedia] = useState<MediaAsset[]>([]);
   const [saving, setSaving] = useState(false);
+  const words = wordCount(content);
 
   const submit = async () => {
     const trimmed = content.trim();
-    if (!trimmed) {
-      Alert.alert('Bài viết trống', 'Hãy nhập nội dung trước khi đăng.');
-      return;
-    }
-    if (wordCount(trimmed) > MAX_POST_WORDS) {
-      Alert.alert('Nội dung quá dài', `Bài viết tối đa ${MAX_POST_WORDS} từ.`);
-      return;
-    }
-    if (!subjectId.trim()) {
-      Alert.alert('Thiếu môn học', 'Nhập ID môn học theo yêu cầu của API.');
-      return;
-    }
+    if (!trimmed) return notify('Bài viết trống', 'Hãy nhập nội dung trước khi đăng.');
+    if (words > MAX_POST_WORDS) return notify('Nội dung quá dài', `Bài viết tối đa ${MAX_POST_WORDS} từ.`);
+    if (!subjectId.trim()) return notify('Thiếu môn học', 'Hãy chọn môn học cho bài viết.');
     if (media.some((asset) => asset.mediaType === 'video') && postType !== 'LEARNING_VIDEO') {
-      Alert.alert('Loại bài viết chưa đúng', 'Hãy chọn “Video học tập” để đăng video.');
-      return;
+      return notify('Loại bài viết chưa đúng', 'Hãy chọn “Video học tập” để đăng video.');
     }
-
     setSaving(true);
     try {
-      const post = await socialApi.createPost({
-        content: trimmed,
-        media: media.filter((asset) => asset.url),
-        subjectId: subjectId.trim(),
-        postType,
-      });
-      onCreated(post);
+      onCreated(await socialApi.createPost({ content: trimmed, media: media.filter((asset) => asset.url), subjectId: subjectId.trim(), postType }));
     } catch (error) {
-      Alert.alert('Không thể đăng bài', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+      notify('Không thể đăng bài', error instanceof Error ? error.message : 'Vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}>
-        <Pressable onPress={onCancel}>
-          <Text style={styles.cancel}>Hủy</Text>
-        </Pressable>
-        <Text style={styles.title}>Tạo bài viết</Text>
-        <Pressable disabled={saving} onPress={submit}>
-          <Text style={[styles.publish, saving && styles.disabled]}>{saving ? 'Đang đăng…' : 'Đăng'}</Text>
-        </Pressable>
-      </View>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
-        <Text style={styles.prompt}>Bạn đang nghĩ gì?</Text>
+    <Screen footer={<View style={{ width: '100%' }}><Button title="Đăng bài" icon="paper-plane-outline" onPress={submit} loading={saving} /></View>}>
+      <Card>
         <TextInput
           autoFocus
           multiline
-          placeholder="Chia sẻ điều gì đó với mọi người..."
-          placeholderTextColor="#8a8d91"
+          placeholder="Bạn muốn chia sẻ điều gì với mọi người?"
+          placeholderTextColor={colors.muted}
           value={content}
           onChangeText={setContent}
-          style={styles.input}
-          textAlignVertical="top"
+          style={{ minHeight: 150, fontSize: 16, color: colors.text, textAlignVertical: 'top' }}
         />
-        <Text style={styles.counter}>{wordCount(content)}/{MAX_POST_WORDS} từ</Text>
-        <Text style={styles.fieldLabel}>Môn học</Text>
-        <TextInput
-          autoCapitalize="none"
-          placeholder="Nhập subject_id"
-          placeholderTextColor="#73777d"
-          value={subjectId}
-          onChangeText={setSubjectId}
-          style={styles.subjectInput}
-        />
-        <Text style={styles.fieldLabel}>Loại bài viết</Text>
-        <View style={styles.typeRow}>
-          {POST_TYPES.map((option) => (
-            <Pressable
-              key={option.type}
-              onPress={() => setPostType(option.type)}
-              style={[styles.typeOption, postType === option.type && styles.selectedType]}
-            >
-              <Text style={[styles.typeText, postType === option.type && styles.selectedTypeText]}>{option.label}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <Text style={{ textAlign: 'right', fontSize: 12, color: words > MAX_POST_WORDS ? colors.danger : colors.muted }}>{words}/{MAX_POST_WORDS} từ</Text>
+      </Card>
+
+      <Card>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Môn học</Text>
+        {subjects.data?.length ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {subjects.data.map((s) => <Chip key={s.id} label={s.name} active={subjectId === String(s.id)} onPress={() => setSubjectId(String(s.id))} />)}
+          </View>
+        ) : subjects.loading ? <Text style={{ color: colors.muted }}>Đang tải môn học…</Text> : (
+          <Field label="Nhập subject_id" value={subjectId} onChangeText={setSubjectId} autoCapitalize="none" />
+        )}
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginTop: 6 }}>Loại bài viết</Text>
+        <Segmented value={postType} onChange={setPostType} options={POST_TYPES} />
+      </Card>
+
+      <Card>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Ảnh / video</Text>
         <MediaUpload value={media} onChange={setMedia} />
-        <Text style={styles.helper}>Tối đa 4 ảnh (4 MB/ảnh) hoặc 1 video. Không hỗ trợ ảnh động.</Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 18 }}>Tối đa 4 ảnh (4 MB/ảnh) hoặc 1 video. Không hỗ trợ ảnh động.</Text>
+      </Card>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { height: 54, paddingHorizontal: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd' },
-  cancel: { color: '#606770', fontSize: 16 },
-  title: { color: '#1c1e21', fontSize: 17, fontWeight: '700' },
-  publish: { color: '#1877f2', fontSize: 16, fontWeight: '700' },
-  disabled: { color: '#9abef0' },
-  body: { padding: 18, paddingBottom: 36 },
-  prompt: { color: '#1c1e21', fontSize: 17, fontWeight: '700' },
-  input: { minHeight: 140, marginTop: 12, fontSize: 17, color: '#1c1e21' },
-  counter: { color: '#73777d', textAlign: 'right', fontSize: 12, marginBottom: 12 },
-  fieldLabel: { color: '#4b4f56', fontSize: 13, fontWeight: '700', marginTop: 12, marginBottom: 7 },
-  subjectInput: { minHeight: 44, borderWidth: 1, borderColor: '#d8dce2', borderRadius: 9, paddingHorizontal: 12, color: '#1c1e21' },
-  typeRow: { flexDirection: 'row', gap: 8 },
-  typeOption: { flex: 1, paddingVertical: 11, borderRadius: 9, backgroundColor: '#f0f2f5', alignItems: 'center' },
-  selectedType: { backgroundColor: '#e7f3ff' },
-  typeText: { color: '#606770', fontSize: 13, fontWeight: '600' },
-  selectedTypeText: { color: '#1877f2' },
-  helper: { color: '#73777d', fontSize: 12, marginTop: 10, lineHeight: 18 },
-});

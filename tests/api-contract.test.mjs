@@ -28,7 +28,7 @@ test(
     assert.equal(response.status, 200, `OpenAPI returned HTTP ${response.status}`);
     const spec = await response.json();
     const paths = spec.paths ?? {};
-    for (const path of ['/posts', '/comments', '/react', '/activity-feeds', '/search', '/medias/upload']) {
+    for (const path of ['/posts', '/comments', '/react', '/activity-feeds', '/medias/upload']) {
       assert.ok(paths[path], `OpenAPI does not declare ${path}`);
     }
   },
@@ -216,16 +216,6 @@ test(
       assert.ok(
         currentCount === firstCount || currentCount === firstCount - 1,
         'Repeated LIKE must not increase the count; it may be idempotent or toggle off.',
-      );
-    });
-
-    await t.test('returns no posts, users, or questions for an unmatched search', async () => {
-      const search = await request(`/search?query=${encodeURIComponent(`none-${randomUUID()}`)}&type=ALL&limit=20`);
-      assertSuccess(search);
-      const results = dataOf(search).results ?? {};
-      assert.equal(
-        (results.posts?.length ?? 0) + (results.users?.length ?? 0) + (results.questions?.length ?? 0),
-        0,
       );
     });
 

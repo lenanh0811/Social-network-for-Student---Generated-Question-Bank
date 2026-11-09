@@ -49,7 +49,7 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, flexWrap: 'wrap' },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   main: { flex: 1, minWidth: 180, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  name: { fontSize: 15, fontWeight: '700', color: colors.text },
+  name: { fontSize: 15, fontWeight: '600', color: colors.text },
   sub: { fontSize: 12, color: colors.muted },
   actions: { flexDirection: 'row', gap: 8, marginLeft: 'auto' },
 });

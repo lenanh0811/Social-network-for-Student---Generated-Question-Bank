@@ -76,7 +76,7 @@ export default function ReportScreen() {
     <Screen>
       <Header title="Báo cáo vi phạm" />
       <Muted>
-        Bạn đang báo cáo {TARGET[targetType]}{params.name ? <Text style={{ fontWeight: '700', color: colors.text }}> {params.name}</Text> : null}.
+        Bạn đang báo cáo {TARGET[targetType]}{params.name ? <Text style={{ fontWeight: '600', color: colors.text }}> {params.name}</Text> : null}.
         Báo cáo sai sự thật nhiều lần có thể khiến tài khoản của bạn bị hạn chế.
       </Muted>
       {formError ? <Notice>{formError}</Notice> : null}
@@ -121,6 +121,6 @@ export default function ReportScreen() {
 const s = StyleSheet.create({
   option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  label: { fontSize: 15, fontWeight: '700', color: colors.text },
+  label: { fontSize: 15, fontWeight: '600', color: colors.text },
   hint: { fontSize: 12, color: colors.muted },
 });

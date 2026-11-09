@@ -74,11 +74,11 @@ export default function ExamChat() {
                   <View style={{ maxWidth: '88%', backgroundColor: colors.primary, borderRadius: 20, borderBottomRightRadius: 6, paddingVertical: 10, paddingHorizontal: 14 }}><Text style={{ color: '#fff' }}>{m.text}</Text></View>
                 ) : (
                   <Glass strong style={{ maxWidth: '92%', borderRadius: 20, borderBottomLeftRadius: 6, padding: 12, gap: 8 }}>
-                    <Row style={{ gap: 6 }}><Ionicons name="sparkles" size={16} color={colors.accent} /><Text style={{ fontWeight: '700', color: colors.text }}>AI</Text></Row>
+                    <Row style={{ gap: 6 }}><Ionicons name="sparkles" size={16} color={colors.accent} /><Text style={{ fontWeight: '600', color: colors.text }}>AI</Text></Row>
                     <Text style={{ color: colors.text }}>{m.text}</Text>
                     {m.exam ? (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 14, padding: 10, gap: 6, borderWidth: 1, borderColor: glass.edge }}>
-                        <Text style={{ fontWeight: '700', color: colors.text }}>{m.exam.title}</Text>
+                        <Text style={{ fontWeight: '600', color: colors.text }}>{m.exam.title}</Text>
                         {m.exam.questions.slice(0, 4).map((q, i) => <Text key={q.id} numberOfLines={1} style={{ color: colors.text }}>{i + 1}. {q.content}</Text>)}
                         {m.exam.questions.length > 4 ? <Muted>… và {m.exam.questions.length - 4} câu nữa</Muted> : null}
                         <Row>

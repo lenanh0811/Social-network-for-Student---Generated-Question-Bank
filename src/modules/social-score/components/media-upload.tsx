@@ -1,6 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { notify } from '@/modules/social-score/utils/dialog';
+import { colors } from '@/theme';
 import { socialApi } from '@/modules/social-score/api/social-api';
 import type { MediaAsset } from '@/modules/social-score/api/types';
 
@@ -17,7 +20,7 @@ export function MediaUpload({
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Cần quyền truy cập', 'Cho phép truy cập thư viện ảnh/video để đính kèm media.');
+        notify('Cần quyền truy cập', 'Cho phép truy cập thư viện ảnh/video để đính kèm media.');
         return;
       }
 
@@ -33,12 +36,12 @@ export function MediaUpload({
       const containsVideo = selectedAssets.some((asset) => asset.type === 'video');
       const alreadyHasVideo = value.some((asset) => asset.mediaType === 'video');
       if ((containsVideo || alreadyHasVideo) && (selectedAssets.length > 1 || value.length > 0)) {
-        Alert.alert('Tệp không hợp lệ', 'Một bài viết có thể đính kèm tối đa 4 ảnh hoặc 1 video.');
+        notify('Tệp không hợp lệ', 'Một bài viết có thể đính kèm tối đa 4 ảnh hoặc 1 video.');
         return;
       }
       const existingImages = value.filter((asset) => asset.mediaType === 'image').length;
       if (!containsVideo && existingImages + selectedAssets.length > 4) {
-        Alert.alert('Vượt giới hạn media', 'Một bài viết có thể đính kèm tối đa 4 ảnh.');
+        notify('Vượt giới hạn media', 'Một bài viết có thể đính kèm tối đa 4 ảnh.');
         return;
       }
 
@@ -58,7 +61,7 @@ export function MediaUpload({
         onChange(completed);
       }
     } catch (error) {
-      Alert.alert('Tải media thất bại', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+      notify('Tải media thất bại', error instanceof Error ? error.message : 'Vui lòng thử lại.');
     } finally {
       setUploading(false);
     }
@@ -67,7 +70,7 @@ export function MediaUpload({
   return (
     <View style={styles.container}>
       <Pressable accessibilityRole="button" disabled={uploading} onPress={chooseMedia} style={styles.chooseButton}>
-        <Text style={styles.chooseIcon}>▧</Text>
+        <Ionicons name="image-outline" size={22} color={colors.primary} />
         <Text style={styles.chooseLabel}>{uploading ? 'Đang tải lên…' : 'Ảnh / video'}</Text>
       </Pressable>
       <View style={styles.previews}>
@@ -77,7 +80,7 @@ export function MediaUpload({
               <Image source={{ uri: asset.url ?? asset.uri }} style={styles.previewImage} />
             ) : (
               <View style={[styles.previewImage, styles.videoPreview]}>
-                <Text style={styles.videoText}>▶  Video</Text>
+                <Ionicons name="videocam" size={28} color={colors.muted} />
               </View>
             )}
             <Pressable
@@ -86,7 +89,7 @@ export function MediaUpload({
               onPress={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}
               style={styles.remove}
             >
-              <Text style={styles.removeText}>×</Text>
+              <Ionicons name="close" size={18} color="#fff" />
             </Pressable>
           </View>
         ))}
@@ -101,18 +104,19 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: '#d8dce2',
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.card,
   },
-  chooseIcon: { color: '#45bd62', fontSize: 22, marginRight: 10 },
-  chooseLabel: { color: '#4b4f56', fontSize: 14, fontWeight: '600' },
+  chooseLabel: { color: colors.text, fontSize: 14, fontWeight: '600' },
   previews: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   preview: { width: '48%', position: 'relative' },
-  previewImage: { width: '100%', height: 145, borderRadius: 10, backgroundColor: '#f0f2f5' },
+  previewImage: { width: '100%', height: 145, borderRadius: 10, backgroundColor: colors.bg },
   videoPreview: { alignItems: 'center', justifyContent: 'center' },
-  videoText: { color: '#4b4f56', fontWeight: '600' },
-  remove: { position: 'absolute', top: 8, right: 8, height: 30, width: 30, borderRadius: 15, backgroundColor: '#1c1e21', alignItems: 'center', justifyContent: 'center' },
+  videoText: { color: colors.text, fontWeight: '600' },
+  remove: { position: 'absolute', top: 8, right: 8, height: 30, width: 30, borderRadius: 15, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },
   removeText: { color: '#fff', fontSize: 23, lineHeight: 26 },
 });

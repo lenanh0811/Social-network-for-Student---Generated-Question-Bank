@@ -21,5 +21,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  letter: { color: colors.primary, fontWeight: "700" },
+  letter: { color: colors.primary, fontWeight: "600" },
 });

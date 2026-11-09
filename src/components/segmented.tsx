@@ -12,7 +12,7 @@ export function Segmented<T extends string>({ value, options, onChange }: {
         const on = value === o.value;
         return (
           <Pressable key={o.value} onPress={() => onChange(o.value)} style={[styles.segItem, on && styles.segActive]}>
-            <Text style={{ fontWeight: '700', fontSize: 13, color: on ? colors.primary : colors.muted }}>{o.label}</Text>
+            <Text style={{ fontWeight: '600', fontSize: 13, color: on ? colors.primary : colors.muted }}>{o.label}</Text>
           </Pressable>
         );
       })}

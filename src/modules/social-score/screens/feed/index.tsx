@@ -1,29 +1,32 @@
-import { useCallback, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Empty } from '@/components/empty';
+import { ErrorBox } from '@/components/error-box';
+import { Loading } from '@/components/loading';
+import { Screen } from '@/components/screen';
+import { useAuth } from '@/context/auth';
 import { socialApi } from '@/modules/social-score/api/social-api';
 import type { Post } from '@/modules/social-score/api/types';
 import { Avatar } from '@/modules/social-score/components/avatar';
 import { PostCard } from '@/modules/social-score/components/post-card';
+import { colors } from '@/theme';
 
-export function FeedScreen({
-  onOpenPost,
-  onCreatePost,
-  onOpenSearch,
-}: {
-  onOpenPost: (post: Post) => void;
-  onCreatePost: () => void;
-  onOpenSearch: () => void;
-}) {
+/** Bảng tin: khung đăng bài, danh sách bài viết (GET /activity-feeds), kéo để làm mới, tải thêm theo con trỏ. */
+export function FeedScreen({ onOpenPost, onCreatePost }: { onOpenPost: (post: Post) => void; onCreatePost: () => void }) {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [after, setAfter] = useState<string>();
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadFirstPage = async () => {
-    setLoading(true);
+  const loadFirstPage = useCallback(async () => {
     try {
       const page = await socialApi.getFeed();
       setPosts(page.posts);
@@ -34,8 +37,12 @@ export function FeedScreen({
       setError(cause instanceof Error ? cause.message : 'Không thể tải bảng tin.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
+
+  // Mỗi lần quay lại màn hình (vd. vừa đăng bài xong) thì tải lại.
+  useFocusEffect(useCallback(() => { void loadFirstPage(); }, [loadFirstPage]));
 
   const loadMore = async () => {
     if (!hasNext || !after || loadingMore) return;
@@ -49,7 +56,6 @@ export function FeedScreen({
       });
       setAfter(page.after);
       setHasNext(page.hasNext);
-      setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Không thể tải thêm bài viết.');
     } finally {
@@ -57,132 +63,42 @@ export function FeedScreen({
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      socialApi
-        .getFeed()
-        .then((page) => {
-          if (!active) return;
-          setPosts(page.posts);
-          setAfter(page.after);
-          setHasNext(page.hasNext);
-          setError(null);
-        })
-        .catch((cause: unknown) => {
-          if (active) setError(cause instanceof Error ? cause.message : 'Không thể tải bảng tin.');
-        })
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-    }, []),
-  );
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.brandHeader}>
-        <Text style={styles.brand}>campus</Text>
-        <Pressable onPress={onOpenSearch} style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>⌕</Text>
+    <Screen onRefresh={() => { setRefreshing(true); void loadFirstPage(); }} refreshing={refreshing}>
+      <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Avatar user={{ id: user.id, name: user.name, avatarUrl: user.avatarUrl }} size={44} />
+        <Pressable onPress={onCreatePost} style={({ pressed }) => ({ flex: 1, minHeight: 44, justifyContent: 'center', paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.bg, opacity: pressed ? 0.7 : 1 })}>
+          <Text style={{ color: colors.muted, fontSize: 15 }}>Bạn muốn chia sẻ điều gì?</Text>
         </Pressable>
-      </View>
-      <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>⌕</Text>
-        <TextInput
-          editable={false}
-          onPressIn={onOpenSearch}
-          placeholder="Tìm kiếm trên Campus"
-          placeholderTextColor="#65676b"
-          style={styles.searchInput}
-        />
-      </View>
-      <View style={styles.composer}>
-        <Avatar user={{ id: 'me', name: 'Bạn' }} />
-        <Pressable onPress={onCreatePost} style={styles.composerButton}>
-          <Text style={styles.composerText}>Bạn đang nghĩ gì?</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Đăng ảnh hoặc video" onPress={onCreatePost} hitSlop={8}>
+          <Ionicons name="image-outline" size={26} color={colors.primary} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Đăng ảnh hoặc video" onPress={onCreatePost}>
-          <Text style={styles.photoIcon}>▧</Text>
-        </Pressable>
-      </View>
-      <View style={styles.stories}>
-        <Text style={styles.storiesLabel}>KHOẢNH KHẮC</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storyList}>
-          {['Chia sẻ của bạn', 'Bạn bè', 'Cộng đồng', 'Sự kiện'].map((label, index) => (
-            <Pressable key={label} onPress={index === 0 ? onCreatePost : undefined} style={styles.story}>
-              <View style={[styles.storyCircle, index === 0 && styles.addStory]}>
-                <Text style={styles.storyIcon}>{index === 0 ? '+' : ['🌱', '🎓', '💬'][index - 1]}</Text>
-              </View>
-              <Text numberOfLines={1} style={styles.storyText}>{label}</Text>
-            </Pressable>
+      </Card>
+
+      {loading ? <Loading /> : error && posts.length === 0 ? (
+        <ErrorBox message={error} onRetry={() => { setLoading(true); void loadFirstPage(); }} />
+      ) : posts.length === 0 ? (
+        <Card><Empty icon="newspaper-outline" text="Bảng tin đang yên ắng. Hãy chia sẻ bài viết đầu tiên với cộng đồng." action={<Button small title="Tạo bài viết" icon="add" onPress={onCreatePost} />} /></Card>
+      ) : (
+        <>
+          {posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onOpen={() => onOpenPost(post)}
+              onUpdate={(updated) => setPosts((current) => current.map((item) => (item.id === updated.id ? updated : item)))}
+            />
           ))}
-        </ScrollView>
-      </View>
-      {loading && <ActivityIndicator color="#1877f2" style={styles.loader} />}
-      {error && (
-        <View style={styles.messageCard}>
-          <Text style={styles.messageTitle}>Không tải được bảng tin</Text>
-          <Text style={styles.messageText}>{error}</Text>
-          <Pressable onPress={loadFirstPage}>
-            <Text style={styles.retry}>Thử lại</Text>
-          </Pressable>
-        </View>
+          {error ? <ErrorBox message={error} onRetry={loadMore} /> : null}
+          {hasNext && !error ? (
+            <View style={{ alignItems: 'center' }}>
+              <Button small variant="outline" title={loadingMore ? 'Đang tải…' : 'Tải thêm bài viết'} onPress={loadMore} loading={loadingMore} />
+            </View>
+          ) : (
+            <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 13 }}>Bạn đã xem hết bài viết.</Text>
+          )}
+        </>
       )}
-      {!loading && !error && posts.length === 0 && (
-        <View style={styles.messageCard}>
-          <Text style={styles.messageTitle}>Bảng tin đang yên ắng</Text>
-          <Text style={styles.messageText}>Hãy chia sẻ bài viết đầu tiên với cộng đồng.</Text>
-          <Pressable onPress={onCreatePost}>
-            <Text style={styles.retry}>Tạo bài viết</Text>
-          </Pressable>
-        </View>
-      )}
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          onOpen={() => onOpenPost(post)}
-          onUpdate={(updated) => setPosts((current) => current.map((item) => (item.id === updated.id ? updated : item)))}
-        />
-      ))}
-      {hasNext && !error && (
-        <Pressable disabled={loadingMore} onPress={loadMore} style={styles.loadMore}>
-          <Text style={styles.retry}>{loadingMore ? 'Đang tải…' : 'Tải thêm bài viết'}</Text>
-        </Pressable>
-      )}
-    </ScrollView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingBottom: 12 },
-  brandHeader: { height: 56, paddingHorizontal: 18, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#d8dce2' },
-  brand: { color: '#1877f2', fontSize: 27, fontWeight: '800', letterSpacing: -1 },
-  searchButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f2f5', alignItems: 'center', justifyContent: 'center' },
-  searchButtonText: { color: '#1c1e21', fontSize: 28, lineHeight: 32 },
-  searchBar: { backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center' },
-  searchIcon: { color: '#606770', fontSize: 24, marginRight: 8 },
-  searchInput: { flex: 1, height: 38, borderRadius: 20, backgroundColor: '#f0f2f5', paddingHorizontal: 14, color: '#1c1e21' },
-  composer: { backgroundColor: '#fff', paddingHorizontal: 14, paddingBottom: 12, flexDirection: 'row', alignItems: 'center' },
-  composerButton: { flex: 1, marginHorizontal: 10, minHeight: 40, justifyContent: 'center' },
-  composerText: { color: '#65676b', fontSize: 15 },
-  photoIcon: { color: '#45bd62', fontSize: 23 },
-  stories: { backgroundColor: '#fff', marginTop: 9, paddingTop: 13, paddingBottom: 12 },
-  storiesLabel: { color: '#73777d', fontSize: 11, fontWeight: '700', marginHorizontal: 14, marginBottom: 10, letterSpacing: 0.4 },
-  storyList: { paddingHorizontal: 9 },
-  story: { width: 77, alignItems: 'center', marginHorizontal: 5 },
-  storyCircle: { height: 54, width: 54, borderRadius: 27, backgroundColor: '#e7f3ff', borderWidth: 2, borderColor: '#d6e8ff', alignItems: 'center', justifyContent: 'center' },
-  addStory: { backgroundColor: '#f0f2f5', borderColor: '#f0f2f5' },
-  storyIcon: { fontSize: 23, color: '#1877f2' },
-  storyText: { color: '#4b4f56', fontSize: 11, marginTop: 5 },
-  loader: { marginTop: 30 },
-  messageCard: { backgroundColor: '#fff', marginTop: 9, padding: 20 },
-  messageTitle: { color: '#1c1e21', fontSize: 16, fontWeight: '700' },
-  messageText: { color: '#65676b', marginTop: 6, lineHeight: 20 },
-  retry: { color: '#1877f2', fontWeight: '700', marginTop: 12, textAlign: 'center' },
-  loadMore: { backgroundColor: '#fff', marginTop: 1, padding: 10 },
-});

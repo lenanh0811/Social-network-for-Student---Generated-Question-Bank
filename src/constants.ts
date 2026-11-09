@@ -22,10 +22,8 @@ export interface MenuItem {
  * (và tạo file route tương ứng trong src/app/(tabs)/ + khai báo trong (tabs)/_layout.tsx).
  */
 export const MENU_ITEMS: MenuItem[] = [
-  { label: "Trang chủ", icon: "home-outline", href: "/" },
   { label: "Bảng tin mạng xã hội", icon: "people-outline", href: "/social" },
   { label: "Tin nhắn", icon: "chatbubble-ellipses-outline", href: "/messages" },
-  { label: "Tìm bài viết", icon: "search-outline", href: "/search" },
   {
     label: "Đóng góp câu hỏi",
     icon: "create-outline",

@@ -1,6 +1,5 @@
 export type MediaType = 'image' | 'video';
 export type PostType = 'SOCIAL_POST' | 'LEARNING_VIDEO' | 'QUESTION_APPROVED_NOTIFICATION';
-export type SearchType = 'ALL' | 'POST' | 'USER' | 'QUESTION';
 
 export interface MediaAsset {
   uri: string;
@@ -45,23 +44,8 @@ export interface Comment {
   replies?: Comment[];
 }
 
-export interface SearchQuestion {
-  id: string;
-  subjectName: string;
-  content: string;
-  difficulty?: string;
-}
-
 export interface FeedPage {
   posts: Post[];
-  after?: string;
-  hasNext: boolean;
-}
-
-export interface SearchResults {
-  posts: Post[];
-  users: SocialUser[];
-  questions: SearchQuestion[];
   after?: string;
   hasNext: boolean;
 }

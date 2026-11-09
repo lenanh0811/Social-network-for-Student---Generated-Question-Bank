@@ -1,5 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useAuth } from '@/context/auth';
+import { confirmAction, notify } from '@/modules/social-score/utils/dialog';
+import { colors } from '@/theme';
 import { socialApi } from '@/modules/social-score/api/social-api';
 import type { Comment } from '@/modules/social-score/api/types';
 import { Avatar } from '@/modules/social-score/components/avatar';
@@ -14,6 +18,7 @@ export function CommentSection({
   postId: string;
   onCountChange?: (change: number) => void;
 }) {
+  const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
@@ -31,7 +36,7 @@ export function CommentSection({
       })
       .catch((error: unknown) => {
         if (active) {
-          Alert.alert('Không thể tải bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+          notify('Không thể tải bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
         }
       })
       .finally(() => {
@@ -45,7 +50,7 @@ export function CommentSection({
   const addComment = async () => {
     const content = draft.trim();
     if (!content || wordCount(content) > MAX_COMMENT_WORDS) {
-      Alert.alert('Bình luận không hợp lệ', `Nhập nội dung từ 1 đến ${MAX_COMMENT_WORDS} từ.`);
+      notify('Bình luận không hợp lệ', `Nhập nội dung từ 1 đến ${MAX_COMMENT_WORDS} từ.`);
       return;
     }
     setSending(true);
@@ -55,7 +60,7 @@ export function CommentSection({
       onCountChange?.(1);
       setDraft('');
     } catch (error) {
-      Alert.alert('Không thể bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+      notify('Không thể bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
     } finally {
       setSending(false);
     }
@@ -69,7 +74,7 @@ export function CommentSection({
   const saveCommentEdit = async () => {
     const content = editDraft.trim();
     if (!content || wordCount(content) > MAX_COMMENT_WORDS) {
-      Alert.alert('Bình luận không hợp lệ', `Nhập nội dung từ 1 đến ${MAX_COMMENT_WORDS} từ.`);
+      notify('Bình luận không hợp lệ', `Nhập nội dung từ 1 đến ${MAX_COMMENT_WORDS} từ.`);
       return;
     }
     if (!editing) return;
@@ -79,29 +84,22 @@ export function CommentSection({
       setComments((current) => current.map((item) => (item.id === updated.id ? updated : item)));
       setEditing(null);
     } catch (error) {
-      Alert.alert('Không thể sửa bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+      notify('Không thể sửa bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
     } finally {
       setSavingEdit(false);
     }
   };
 
   const deleteComment = (comment: Comment) => {
-    Alert.alert('Xóa bình luận?', undefined, [
-      { text: 'Hủy', style: 'cancel' },
-      {
-        text: 'Xóa',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await socialApi.deleteComment(comment.id);
-            setComments((current) => current.filter((item) => item.id !== comment.id));
-            onCountChange?.(-1);
-          } catch (error) {
-            Alert.alert('Không thể xóa bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
-          }
-        },
-      },
-    ]);
+    confirmAction('Xóa bình luận?', 'Bình luận sẽ bị xóa vĩnh viễn.', 'Xóa', async () => {
+      try {
+        await socialApi.deleteComment(comment.id);
+        setComments((current) => current.filter((item) => item.id !== comment.id));
+        onCountChange?.(-1);
+      } catch (error) {
+        notify('Không thể xóa bình luận', error instanceof Error ? error.message : 'Vui lòng thử lại.');
+      }
+    });
   };
 
   return (
@@ -118,7 +116,7 @@ export function CommentSection({
             <View style={styles.bubble}>
               <Text style={styles.author}>{comment.isHidden ? 'Bình luận đã ẩn' : comment.author.name}</Text>
               <Text style={styles.commentText}>{comment.isHidden ? 'Nội dung này không còn hiển thị.' : comment.content}</Text>
-              {!comment.isHidden && (comment.isOwner ?? comment.author.id === process.env.EXPO_PUBLIC_CURRENT_USER_ID) && (
+              {!comment.isHidden && (comment.isOwner ?? comment.author.id === user.id) && (
                 <View style={styles.actions}>
                   <Pressable onPress={() => editComment(comment)}>
                     <Text style={styles.action}>Sửa</Text>
@@ -143,7 +141,7 @@ export function CommentSection({
           style={styles.input}
         />
         <Pressable disabled={sending} onPress={addComment} style={styles.sendButton}>
-          <Text style={styles.sendText}>{sending ? '…' : 'Gửi'}</Text>
+          <Ionicons name="send" size={20} color={colors.primary} />
         </Pressable>
       </View>
       <Modal visible={editing !== null} transparent animationType="fade" onRequestClose={() => setEditing(null)}>
@@ -174,22 +172,22 @@ export function CommentSection({
 }
 
 const styles = StyleSheet.create({
-  section: { paddingHorizontal: 14, paddingTop: 16, paddingBottom: 18 },
-  title: { color: '#1c1e21', fontSize: 16, fontWeight: '700', marginBottom: 14 },
-  helper: { color: '#73777d', fontSize: 13, marginBottom: 14, lineHeight: 19 },
+  section: { padding: 16 },
+  title: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 14 },
+  helper: { color: colors.muted, fontSize: 13, marginBottom: 14, lineHeight: 19 },
   commentRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  bubble: { flex: 1, marginLeft: 9, backgroundColor: '#f0f2f5', borderRadius: 16, padding: 10 },
-  author: { color: '#1c1e21', fontSize: 13, fontWeight: '700', marginBottom: 4 },
-  commentText: { color: '#1c1e21', fontSize: 14, lineHeight: 20 },
+  bubble: { flex: 1, marginLeft: 9, backgroundColor: colors.bg, borderRadius: 16, padding: 12 },
+  author: { color: colors.text, fontSize: 13, fontWeight: '600', marginBottom: 4 },
+  commentText: { color: colors.text, fontSize: 14, lineHeight: 20 },
   actions: { flexDirection: 'row', gap: 16, marginTop: 7 },
-  action: { color: '#65676b', fontSize: 12, fontWeight: '600' },
+  action: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   composer: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-  input: { flex: 1, minHeight: 42, maxHeight: 100, backgroundColor: '#f0f2f5', borderRadius: 22, paddingHorizontal: 14, paddingVertical: 10, color: '#1c1e21' },
+  input: { flex: 1, minHeight: 42, maxHeight: 100, backgroundColor: colors.bg, borderRadius: 22, paddingHorizontal: 14, paddingVertical: 10, color: colors.text },
   sendButton: { paddingHorizontal: 12, paddingVertical: 10 },
-  sendText: { color: '#1877f2', fontWeight: '700' },
+  sendText: { color: colors.primary, fontWeight: '600' },
   modalBackdrop: { flex: 1, backgroundColor: '#0006', justifyContent: 'center', padding: 22 },
   editDialog: { backgroundColor: '#fff', borderRadius: 14, padding: 18 },
-  dialogTitle: { color: '#1c1e21', fontSize: 17, fontWeight: '700', marginBottom: 12 },
-  editInput: { minHeight: 100, maxHeight: 180, color: '#1c1e21', fontSize: 15 },
+  dialogTitle: { color: colors.text, fontSize: 17, fontWeight: '600', marginBottom: 12 },
+  editInput: { minHeight: 100, maxHeight: 180, color: colors.text, fontSize: 15 },
   dialogActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 22, marginTop: 16 },
 });

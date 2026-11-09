@@ -63,7 +63,7 @@ export default function DevicesScreen() {
               <Ionicons name={icon(d.platform)} size={22} color={d.active ? colors.primary : colors.muted} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontWeight: '700', fontSize: 15, color: colors.text }}>{d.name}</Text>
+              <Text style={{ fontWeight: '600', fontSize: 15, color: colors.text }}>{d.name}</Text>
               <Muted>{[d.platform, d.osVersion].filter(Boolean).join(' · ')}</Muted>
               <Muted>Hoạt động {ago(d.lastActiveAt)}</Muted>
             </View>

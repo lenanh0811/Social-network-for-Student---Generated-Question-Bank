@@ -25,7 +25,6 @@ Set `EXPO_PUBLIC_CURRENT_USER_ID` to the signed-in user's ID if the API does not
 | `GET /comments?target_type=POST&target_id=...&limit=20` | Reads `data.items` and maps `comment_id`, author, content, hidden state, and replies. |
 | `PUT /comments/{commentId}` / `DELETE /comments/{commentId}` | Edits or deletes a comment; edit/delete controls are shown only for the owner when the API provides `is_owner` or `EXPO_PUBLIC_CURRENT_USER_ID` is configured. |
 | `POST /react` | Sends `{ target_type: "POST", target_id, reaction_type: "LIKE" \| "NONE" }`; only the documented Like action is shown. |
-| `GET /search?query=&type=ALL&limit=20` | Displays grouped `data.results.posts`, `users`, and `questions`, with the documented result-type filters. |
 | `POST /medias/upload` | Sends multipart fields `file` and `purpose=POST`; uses `data.url` on success. |
 
 The supplied API document has two unresolved request details for `POST /posts`: it lists `media_urls` as a string in the input table but as a list in the response and frontend flow, and it marks `subject_id` required without confirming whether every post type needs it. The client sends `media_urls` as an array and requires a subject ID. Confirm these two details with the backend before production integration.
@@ -44,6 +43,6 @@ $env:SOCIAL_SUBJECT_ID = "<valid-subject-id>"
 npm run test:api
 ```
 
-The suite creates and deletes temporary content, checks empty/over-500-word posts and comments, owner authorization, comment CRUD, repeated Like behavior, empty search results, and invalid/missing upload files. It skips if the API URL or subject ID is not configured; the different-user authorization case skips if `SOCIAL_OTHER_USER_TOKEN` is not set.
+The suite creates and deletes temporary content, checks empty/over-500-word posts and comments, owner authorization, comment CRUD, repeated Like behavior, and invalid/missing upload files. It skips if the API URL or subject ID is not configured; the different-user authorization case skips if `SOCIAL_OTHER_USER_TOKEN` is not set.
 
 The API document identifies storage failure as `FILE_UPLOAD_FAILED`, but provides no way to force a storage outage through a request. The script therefore checks upload validation failures; verify the storage-failure UI path with a backend fault-injection fixture.

@@ -20,7 +20,7 @@ export function GameShell({ no, title, icon, rule, reward, color = colors.primar
           <Ionicons name={icon} size={26} color="#fff" />
         </View>
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontWeight: '800', fontSize: 18, color: colors.text }}>Minigame {no}: {title}</Text>
+          <Text style={{ fontWeight: '600', fontSize: 18, color: colors.text }}>Minigame {no}: {title}</Text>
           <Badge label={reward} fg={colors.warning} bg={colors.warningSoft} />
         </View>
         {onClose ? <Pressable onPress={onClose} hitSlop={8}><Ionicons name="close-circle" size={28} color={colors.muted} /></Pressable> : null}

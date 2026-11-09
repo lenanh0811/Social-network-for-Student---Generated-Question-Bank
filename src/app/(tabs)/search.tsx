@@ -5,8 +5,8 @@ export default function SocialSearchRoute() {
   const { q } = useLocalSearchParams<{ q?: string }>();
   return (
     <SearchScreen
-      key={q ?? ''}
-      initialQuery={q}
+      key={q ?? ""}
+      query={(q ?? '').trim()}
       onOpenPost={(post) => router.push({ pathname: '/posts/[id]', params: { id: post.id } })}
     />
   );

@@ -48,7 +48,7 @@ export default function Review() {
             </>
           ) : (
             <Row style={{ justifyContent: 'space-between' }}>
-              <Text style={{ fontWeight: '700' }}>Đã chọn {sel.length}</Text>
+              <Text style={{ fontWeight: '600' }}>Đã chọn {sel.length}</Text>
               <Row>
                 <Button title="Từ chối" icon="close" variant="outline" onPress={() => setRejecting(true)} />
                 <Button title="Duyệt" icon="checkmark" variant="success" loading={busy} onPress={() => run(() => approveSessions(sel))} />
@@ -71,7 +71,7 @@ export default function Review() {
                 <Ionicons name={sel.includes(s.id) ? 'checkbox' : 'square-outline'} size={26} color={sel.includes(s.id) ? colors.primary : colors.muted} />
               </Pressable>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700' }}>{s.title}</Text>
+                <Text style={{ fontSize: 16, fontWeight: '600' }}>{s.title}</Text>
                 <Muted>{s.authorName} · {s.subject}</Muted>
                 <Muted>{questionCountOf(s)} câu hỏi · gửi {fmtDate(s.createdAt)}</Muted>
               </View>

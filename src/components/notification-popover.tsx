@@ -20,7 +20,7 @@ export function NotificationPopover() {
       <View style={{ position: 'absolute', top, right: 10, width: Math.min(380, width - 20), maxHeight: height - top - 20 }}>
         <Glass strong intensity={80} style={{ borderRadius: 24, padding: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text }}>Thông báo</Text>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>Thông báo</Text>
             {unread > 0 ? <Text onPress={markAllRead} style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>Đánh dấu đã đọc</Text> : null}
           </View>
           <ScrollView style={{ flexGrow: 0 }}>
