@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { socialApi } from '../api/client';
-import type { Post } from '../api/types';
+import { socialApi } from '../api/social-api';
+import type { post } from '../api/types';
 import { PostScreen } from './PostScreen';
 
 export default function PostRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<post | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

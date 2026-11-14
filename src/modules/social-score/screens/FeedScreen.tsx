@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { socialApi } from '../api/client';
-import type { Post } from '../api/types';
-import { Avatar } from '../components/Avatar';
+import { socialApi } from '../api/social-api';
+import type { post } from '../api/types';
+import { Avatar } from '../components/avatar';
 import { PostCard } from '../components/PostCard';
 
 export function FeedScreen({
@@ -11,11 +11,11 @@ export function FeedScreen({
   onCreatePost,
   onOpenSearch,
 }: {
-  onOpenPost: (post: Post) => void;
+  onOpenPost: (post: post) => void;
   onCreatePost: () => void;
   onOpenSearch: () => void;
 }) {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<post[]>([]);
   const [after, setAfter] = useState<string>();
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);

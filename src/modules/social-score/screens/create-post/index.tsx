@@ -7,27 +7,26 @@ import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { Segmented } from '@/components/segmented';
 import { useLoad } from '@/hooks/use-load';
-import { listSubjects } from '@/modules/exam-bank/api/client';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { MediaAsset, Post, PostType } from '@/modules/social-score/api/types';
+import type { media_asset, post, post_type } from '@/modules/social-score/api/types';
 import { MediaUpload } from '@/modules/social-score/components/media-upload';
 import { notify } from '@/modules/social-score/utils/dialog';
 import { wordCount } from '@/modules/social-score/utils/text';
 import { colors } from '@/theme';
 
 const MAX_POST_WORDS = 500;
-const POST_TYPES: { value: PostType; label: string }[] = [
+const POST_TYPES: { value: post_type; label: string }[] = [
   { value: 'SOCIAL_POST', label: 'Bài viết' },
   { value: 'LEARNING_VIDEO', label: 'Video học tập' },
 ];
 
 /** Tạo bài viết (POST /posts). Môn học chọn từ danh sách; nếu không tải được danh sách thì nhập ID tay. */
-export function CreatePostScreen({ onCreated }: { onCreated: (post: Post) => void }) {
-  const subjects = useLoad(listSubjects);
+export function CreatePostScreen({ onCreated }: { onCreated: (post: post) => void }) {
+  const subjects = useLoad(socialApi.getSubjects);
   const [content, setContent] = useState('');
   const [subjectId, setSubjectId] = useState('');
-  const [postType, setPostType] = useState<PostType>('SOCIAL_POST');
-  const [media, setMedia] = useState<MediaAsset[]>([]);
+  const [postType, setPostType] = useState<post_type>('SOCIAL_POST');
+  const [media, setMedia] = useState<media_asset[]>([]);
   const [saving, setSaving] = useState(false);
   const words = wordCount(content);
 

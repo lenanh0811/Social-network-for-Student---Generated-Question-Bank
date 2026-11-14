@@ -4,16 +4,16 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { Badge } from '@/components/badge';
 import { Card } from '@/components/card';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { Post } from '@/modules/social-score/api/types';
+import type { post } from '@/modules/social-score/api/types';
 import { Avatar } from '@/modules/social-score/components/avatar';
 import { notify } from '@/modules/social-score/utils/dialog';
 import { go } from '@/utils/navigation';
 import { colors } from '@/theme';
 
 export function PostCard({ post, onOpen, onUpdate }: {
-  post: Post;
+  post: post;
   onOpen: () => void;
-  onUpdate: (post: Post) => void;
+  onUpdate: (post: post) => void;
 }) {
   const [reacting, setReacting] = useState(false);
   const [width, setWidth] = useState(0);
@@ -24,7 +24,7 @@ export function PostCard({ post, onOpen, onUpdate }: {
     setReacting(true);
     try {
       const result = await socialApi.react(post.id);
-      onUpdate({ ...post, myReaction: result.myReaction, reactionCount: result.likeCount });
+      onUpdate({ ...post, myReaction: result.myReaction, reactionCount: result.totalCount });
     } catch (error) {
       notify('Không thể bày tỏ cảm xúc', error instanceof Error ? error.message : 'Vui lòng thử lại.');
     } finally {

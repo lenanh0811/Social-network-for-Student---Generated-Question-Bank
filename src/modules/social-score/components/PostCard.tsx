@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { socialApi } from '../api/client';
-import type { Post } from '../api/types';
-import { Avatar } from './Avatar';
+import { socialApi } from '../api/social-api';
+import type { post } from '../api/types';
+import { Avatar } from './avatar';
 
 export function PostCard({
   post,
   onOpen,
   onUpdate,
 }: {
-  post: Post;
+  post: post;
   onOpen: () => void;
-  onUpdate: (post: Post) => void;
+  onUpdate: (post: post) => void;
 }) {
   const [reacting, setReacting] = useState(false);
   const { width } = useWindowDimensions();
@@ -25,7 +25,7 @@ export function PostCard({
       onUpdate({
         ...post,
         myReaction: result.myReaction,
-        reactionCount: result.likeCount,
+        reactionCount: result.totalCount,
       });
     } catch (error) {
       Alert.alert('Không thể bày tỏ cảm xúc', error instanceof Error ? error.message : 'Vui lòng thử lại.');
@@ -41,7 +41,7 @@ export function PostCard({
         <View style={styles.authorDetails}>
           <Text style={styles.authorName}>{post.author.name}</Text>
           <Text style={styles.timestamp}>
-            {formatDate(post.createdAt)} · {post.subjectName ? `${post.subjectName} · ` : ''}Công khai{post.isEdited ? ' · Đã chỉnh sửa' : ''}
+            {formatDate(post.createdAt)} · Công khai{post.isEdited ? ' · Đã chỉnh sửa' : ''}
           </Text>
         </View>
         <Text style={styles.more}>•••</Text>

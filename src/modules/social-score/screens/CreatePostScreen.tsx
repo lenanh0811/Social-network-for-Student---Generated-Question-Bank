@@ -10,13 +10,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { socialApi } from '../api/client';
-import type { MediaAsset, Post, PostType, Subject } from '../api/types';
+import { socialApi } from '../api/social-api';
+import type { media_asset, post, post_type, subject } from '../api/types';
 import { MediaUpload } from '../components/MediaUpload';
 import { wordCount } from '../utils/text';
 
 const MAX_POST_WORDS = 500;
-const POST_TYPES: { type: PostType; label: string }[] = [
+const POST_TYPES: { type: post_type; label: string }[] = [
   { type: 'SOCIAL_POST', label: 'Bài viết' },
   { type: 'LEARNING_VIDEO', label: 'Video học tập' },
 ];
@@ -26,13 +26,13 @@ export function CreatePostScreen({
   onCreated,
 }: {
   onCancel: () => void;
-  onCreated: (post: Post) => void;
+  onCreated: (post: post) => void;
 }) {
   const [content, setContent] = useState('');
   const [subjectId, setSubjectId] = useState('');
-  const [postType, setPostType] = useState<PostType>('SOCIAL_POST');
-  const [media, setMedia] = useState<MediaAsset[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [postType, setPostType] = useState<post_type>('SOCIAL_POST');
+  const [media, setMedia] = useState<media_asset[]>([]);
+  const [subjects, setSubjects] = useState<subject[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [subjectError, setSubjectError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

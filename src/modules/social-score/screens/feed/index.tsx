@@ -10,15 +10,15 @@ import { Loading } from '@/components/loading';
 import { Screen } from '@/components/screen';
 import { useAuth } from '@/context/auth';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { Post } from '@/modules/social-score/api/types';
+import type { post } from '@/modules/social-score/api/types';
 import { Avatar } from '@/modules/social-score/components/avatar';
 import { PostCard } from '@/modules/social-score/components/post-card';
 import { colors } from '@/theme';
 
 /** Bảng tin: khung đăng bài, danh sách bài viết (GET /activity-feeds), kéo để làm mới, tải thêm theo con trỏ. */
-export function FeedScreen({ onOpenPost, onCreatePost }: { onOpenPost: (post: Post) => void; onCreatePost: () => void }) {
+export function FeedScreen({ onOpenPost, onCreatePost }: { onOpenPost: (post: post) => void; onCreatePost: () => void }) {
   const { user } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<post[]>([]);
   const [after, setAfter] = useState<string>();
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);

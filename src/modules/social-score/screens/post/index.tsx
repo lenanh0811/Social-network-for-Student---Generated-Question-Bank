@@ -4,7 +4,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { MediaAsset, Post } from '@/modules/social-score/api/types';
+import type { media_asset, post } from '@/modules/social-score/api/types';
 import { CommentSection } from '@/modules/social-score/components/comment-section';
 import { MediaUpload } from '@/modules/social-score/components/media-upload';
 import { PostCard } from '@/modules/social-score/components/post-card';
@@ -17,14 +17,14 @@ const isVideoUrl = (url: string) => /\.(mp4|mov|m4v|webm)(?:$|[?#])/i.test(url);
 
 /** Chi tiết bài viết: nội dung, (chủ bài) sửa/xóa, bình luận. Tiêu đề và nút quay lại do thanh tiêu đề của Stack lo. */
 export function PostScreen({ post, canManage, onDelete, onUpdate }: {
-  post: Post;
+  post: post;
   canManage: boolean;
   onDelete: () => void;
-  onUpdate: (post: Post) => void;
+  onUpdate: (post: post) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(post.content);
-  const [media, setMedia] = useState<MediaAsset[]>(
+  const [media, setMedia] = useState<media_asset[]>(
     post.mediaUrls.map((url) => ({
       uri: url,
       url,

@@ -1,8 +1,8 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
-import type { SocialUser } from '@/modules/social-score/api/types';
+import type { social_user } from '@/modules/social-score/api/types';
 import { colors } from '@/theme';
 
-export function Avatar({ user, size = 42 }: { user: SocialUser; size?: number }) {
+export function Avatar({ user, size = 42 }: { user: social_user; size?: number }) {
   const initials = user.name
     .split(/\s+/)
     .slice(-2)

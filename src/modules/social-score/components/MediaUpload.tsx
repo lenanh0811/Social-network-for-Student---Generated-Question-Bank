@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { socialApi } from '../api/client';
-import type { MediaAsset } from '../api/types';
+import { socialApi } from '../api/social-api';
+import type { media_asset } from '../api/types';
 
 export function MediaUpload({
   value,
   onChange,
 }: {
-  value: MediaAsset[];
-  onChange: (assets: MediaAsset[]) => void;
+  value: media_asset[];
+  onChange: (assets: media_asset[]) => void;
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -46,7 +46,7 @@ export function MediaUpload({
       let completed = [...value];
       for (const selected of selectedAssets) {
         const mimeType = selected.mimeType ?? (selected.type === 'video' ? 'video/mp4' : 'image/jpeg');
-        const asset: MediaAsset = {
+        const asset: media_asset = {
           uri: selected.uri,
           name: selected.fileName ?? `upload.${mimeType.split('/')[1] ?? 'bin'}`,
           mimeType,

@@ -5,14 +5,14 @@ import { Loading } from '@/components/loading';
 import { Screen } from '@/components/screen';
 import { useAuth } from '@/context/auth';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { Post } from '@/modules/social-score/api/types';
+import type { post } from '@/modules/social-score/api/types';
 import { PostScreen } from '@/modules/social-score/screens/post';
 import { confirmAction, notify } from '@/modules/social-score/utils/dialog';
 
 export default function PostRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<post | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

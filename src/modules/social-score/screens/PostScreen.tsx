@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { socialApi } from '../api/client';
-import type { MediaAsset, Post } from '../api/types';
+import { socialApi } from '../api/social-api';
+import type { media_asset, post } from '../api/types';
 import { CommentSection } from '../components/CommentSection';
 import { MediaUpload } from '../components/MediaUpload';
 import { PostCard } from '../components/PostCard';
@@ -16,15 +16,15 @@ export function PostScreen({
   onDelete,
   onUpdate,
 }: {
-  post: Post;
+  post: post;
   canManage: boolean;
   onBack: () => void;
   onDelete: () => void;
-  onUpdate: (post: Post) => void;
+  onUpdate: (post: post) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(post.content);
-  const [media, setMedia] = useState<MediaAsset[]>(
+  const [media, setMedia] = useState<media_asset[]>(
     post.mediaUrls.map((url) => ({
       uri: url,
       url,

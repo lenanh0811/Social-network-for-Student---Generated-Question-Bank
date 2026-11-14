@@ -28,10 +28,7 @@ export default function TabsLayout() {
           >
             <Tabs.Screen name="index" options={{ href: null }} />
             <Tabs.Screen name="social" options={page("Bảng tin")} />
-<<<<<<< HEAD
-=======
             <Tabs.Screen name="search" options={page("Tìm kiếm")} />
->>>>>>> fed398ac514d13c30ab4eca5ecc037814267bb1f
             <Tabs.Screen name="messages" options={page("Tin nhắn")} />
             <Tabs.Screen
               name="contribute"

@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text } from 'react-native';
 import { Screen } from '@/components/screen';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { Post } from '@/modules/social-score/api/types';
+import type { post } from '@/modules/social-score/api/types';
 import { PostCard } from '@/modules/social-score/components/post-card';
 import { colors } from '@/theme';
 
 /** Kết quả tìm bài viết cho từ khoá `query` (nhập ở thanh tìm kiếm trên navbar). */
-export function SearchScreen({ query, onOpenPost }: { query: string; onOpenPost: (post: Post) => void }) {
-  const [posts, setPosts] = useState<Post[]>([]);
+export function SearchScreen({ query, onOpenPost }: { query: string; onOpenPost: (post: post) => void }) {
+  const [posts, setPosts] = useState<post[]>([]);
   const [loading, setLoading] = useState(!!query);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!query) return;
     let cancelled = false;
-    socialApi.searchPosts(query)
+    socialApi.search(query, 'POST')
       .then((page) => { if (!cancelled) { setPosts(page.posts); setError(null); } })
       .catch((cause) => { if (!cancelled) setError(cause instanceof Error ? cause.message : 'Không thể tìm kiếm.'); })
       .finally(() => { if (!cancelled) setLoading(false); });

@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { socialApi } from '../api/client';
-import type { Post, SearchResults, SearchType } from '../api/types';
-import { Avatar } from '../components/Avatar';
+import { socialApi } from '../api/social-api';
+import type { post, search_results, search_type } from '../api/types';
+import { Avatar } from '../components/avatar';
 import { PostCard } from '../components/PostCard';
 
-const SEARCH_TYPES: { type: SearchType; label: string }[] = [
+const SEARCH_TYPES: { type: search_type; label: string }[] = [
   { type: 'ALL', label: 'Tất cả' },
   { type: 'POST', label: 'Bài viết' },
   { type: 'USER', label: 'Mọi người' },
   { type: 'QUESTION', label: 'Câu hỏi' },
 ];
 
-export function SearchScreen({ onOpenPost }: { onOpenPost: (post: Post) => void }) {
+export function SearchScreen({ onOpenPost }: { onOpenPost: (post: post) => void }) {
   const [query, setQuery] = useState('');
-  const [type, setType] = useState<SearchType>('ALL');
-  const [results, setResults] = useState<SearchResults | null>(null);
+  const [type, setType] = useState<search_type>('ALL');
+  const [results, setResults] = useState<search_results | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

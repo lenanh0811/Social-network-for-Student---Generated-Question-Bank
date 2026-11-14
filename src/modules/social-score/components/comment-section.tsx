@@ -5,7 +5,7 @@ import { useAuth } from '@/context/auth';
 import { confirmAction, notify } from '@/modules/social-score/utils/dialog';
 import { colors } from '@/theme';
 import { socialApi } from '@/modules/social-score/api/social-api';
-import type { Comment } from '@/modules/social-score/api/types';
+import type { comment } from '@/modules/social-score/api/types';
 import { Avatar } from '@/modules/social-score/components/avatar';
 import { wordCount } from '@/modules/social-score/utils/text';
 
@@ -19,11 +19,11 @@ export function CommentSection({
   onCountChange?: (change: number) => void;
 }) {
   const { user } = useAuth();
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<comment[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [editing, setEditing] = useState<Comment | null>(null);
+  const [editing, setEditing] = useState<comment | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -66,7 +66,7 @@ export function CommentSection({
     }
   };
 
-  const editComment = (comment: Comment) => {
+  const editComment = (comment: comment) => {
     setEditing(comment);
     setEditDraft(comment.content);
   };
@@ -90,7 +90,7 @@ export function CommentSection({
     }
   };
 
-  const deleteComment = (comment: Comment) => {
+  const deleteComment = (comment: comment) => {
     confirmAction('Xóa bình luận?', 'Bình luận sẽ bị xóa vĩnh viễn.', 'Xóa', async () => {
       try {
         await socialApi.deleteComment(comment.id);

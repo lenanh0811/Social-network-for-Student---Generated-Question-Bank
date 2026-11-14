@@ -1,16 +1,16 @@
-import type { Comment, MediaAsset, Post, SearchResults, SearchType, Subject } from './types';
+import type { comment, media_asset, post, search_results, search_type, subject } from './types';
 
 const currentUser = { id: '1', name: 'Nguyễn Minh Anh' };
 let nextPostId = 4;
 let nextCommentId = 4;
 
-export const MOCK_SUBJECTS: Subject[] = [
+export const MOCK_SUBJECTS: subject[] = [
   { id: '1', code: 'IT4409', name: 'Công nghệ Web' },
   { id: '2', code: 'IT3090', name: 'Cơ sở dữ liệu' },
   { id: '3', code: 'IT3080', name: 'Mạng máy tính' },
 ];
 
-export const MOCK_POSTS: Post[] = [
+export const MOCK_POSTS: post[] = [
   {
     id: '1',
     content: 'Chào mọi người! Cùng chia sẻ tài liệu và kinh nghiệm học tập nhé.',
@@ -49,7 +49,7 @@ export const MOCK_POSTS: Post[] = [
   },
 ];
 
-export const MOCK_COMMENTS: Comment[] = [
+export const MOCK_COMMENTS: comment[] = [
   {
     id: '1',
     targetId: '1',
@@ -97,12 +97,12 @@ export function mockSubjects() {
 
 export function mockCreatePost(input: {
   content: string;
-  media: MediaAsset[];
+  media: media_asset[];
   subjectId: string;
-  postType: Post['postType'];
+  postType: post['postType'];
 }) {
   const subject = MOCK_SUBJECTS.find((item) => item.id === input.subjectId);
-  const post: Post = {
+  const post: post = {
     id: String(nextPostId++),
     content: input.content,
     author: currentUser,
@@ -143,7 +143,7 @@ export function mockComments(targetId: string, after?: string, limit = 20) {
 }
 
 export function mockCreateComment(targetId: string, content: string, parentCommentId?: string) {
-  const comment: Comment = {
+  const comment: comment = {
     id: String(nextCommentId++),
     targetId,
     content,
@@ -174,7 +174,7 @@ export function mockDeleteComment(id: string) {
   if (post) post.commentCount = Math.max(0, post.commentCount - 1);
 }
 
-export function mockReact(postId: string, reactionType: Post['myReaction']) {
+export function mockReact(postId: string, reactionType: post['myReaction']) {
   const post = mockGetPost(postId);
   const next = post.myReaction === reactionType ? 'NONE' : reactionType;
   if (post.myReaction === 'NONE' && next !== 'NONE') post.reactionCount += 1;
@@ -183,7 +183,7 @@ export function mockReact(postId: string, reactionType: Post['myReaction']) {
   return { myReaction: post.myReaction, likeCount: post.reactionCount };
 }
 
-export function mockSearch(query: string, type: SearchType, after?: string, limit = 20) {
+export function mockSearch(query: string, type: search_type, after?: string, limit = 20) {
   const term = query.toLocaleLowerCase();
   const posts = type === 'USER' || type === 'QUESTION'
     ? []
@@ -192,7 +192,7 @@ export function mockSearch(query: string, type: SearchType, after?: string, limi
     ? []
     : [...new Map(MOCK_POSTS.map((post) => [post.author.id, post.author])).values()]
       .filter((user) => user.name.toLocaleLowerCase().includes(term));
-  const questions: SearchResults['questions'] = [];
+  const questions: search_results['questions'] = [];
   const all = [...posts.map((post) => ({ kind: 'post' as const, item: post })), ...users.map((user) => ({ kind: 'user' as const, item: user }))];
   const start = after ? Math.max(0, all.findIndex((entry) => entry.item.id === after) + 1) : 0;
   const items = all.slice(start, start + limit);
@@ -202,7 +202,7 @@ export function mockSearch(query: string, type: SearchType, after?: string, limi
   return { posts: pagedPosts, users: pagedUsers, questions, after: hasNext ? items[items.length - 1]?.item.id : undefined, hasNext };
 }
 
-export function mockUploadMedia(asset: MediaAsset): MediaAsset {
+export function mockUploadMedia(asset: media_asset): media_asset {
   return {
     ...asset,
     key: `mock/${asset.name}`,

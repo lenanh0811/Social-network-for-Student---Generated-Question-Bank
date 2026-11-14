@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { socialApi } from '../api/client';
-import type { Comment } from '../api/types';
-import { Avatar } from './Avatar';
+import { socialApi } from '../api/social-api';
+import type { comment } from '../api/types';
+import { Avatar } from './avatar';
 import { wordCount } from '../utils/text';
 
 const MAX_COMMENT_WORDS = 500;
@@ -14,11 +14,11 @@ export function CommentSection({
   postId: string;
   onCountChange?: (change: number) => void;
 }) {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<comment[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [editing, setEditing] = useState<Comment | null>(null);
+  const [editing, setEditing] = useState<comment | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -61,7 +61,7 @@ export function CommentSection({
     }
   };
 
-  const editComment = (comment: Comment) => {
+  const editComment = (comment: comment) => {
     setEditing(comment);
     setEditDraft(comment.content);
   };
@@ -85,7 +85,7 @@ export function CommentSection({
     }
   };
 
-  const deleteComment = (comment: Comment) => {
+  const deleteComment = (comment: comment) => {
     Alert.alert('Xóa bình luận?', undefined, [
       { text: 'Hủy', style: 'cancel' },
       {
