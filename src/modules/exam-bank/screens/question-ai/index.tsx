@@ -18,6 +18,8 @@ import { Row } from '@/components/row';
 
 const QUICK = ['Diễn đạt rõ ràng, súc tích hơn', 'Làm câu hỏi khó hơn', 'Sửa lỗi chính tả & ngữ pháp', 'Viết lại các đáp án gây nhiễu', 'Thêm giải thích đáp án'];
 let mid = 0;
+/** Mã cuộc chat gửi kèm để AI nhớ ngữ cảnh các lượt trước. */
+const newChatId = (qid: string) => `chat-${qid}-${Date.now().toString(36)}`;
 
 /** GV chat trực tiếp với AI (LLM) để chỉnh sửa / cải thiện văn phong câu hỏi. API 26 (refine) · API 27 (apply). */
 export default function QuestionAi() {
@@ -25,10 +27,11 @@ export default function QuestionAi() {
   const [, bump] = useState(0);
   useFocusEffect(useCallback(() => bump((n) => n + 1), []));
   const q = getCachedQuestion(id);
-  const [msgs, setMsgs] = useState<ChatMessage[]>([{ id: 'hello', from: 'ai', text: 'Xin chào! Hãy cho tôi biết bạn muốn chỉnh câu hỏi này thế nào — tôi sẽ đề xuất một phiên bản mới để bạn xem trước.' }]);
+  const [msgs, setMsgs] = useState<ChatMessage[]>([{ id: 'hello', from: 'ai', text: 'Xin chào! Hãy cho tôi biết bạn muốn chỉnh câu hỏi này thế nào, tôi sẽ đề xuất một phiên bản mới và tự kiểm định để bạn xem trước.' }]);
   const [text, setText] = useState('');
   const [thinking, setThinking] = useState(false);
   const [applying, setApplying] = useState<string>();
+  const [chatId] = useState(() => newChatId(id));
   const scroll = useRef<ScrollViewInstance>(null);
   if (!q) return <GlassBackdrop><Header title="Chat với AI" /><View style={{ padding: 90 }}><ErrorBox message="Không có dữ liệu câu hỏi." /></View></GlassBackdrop>;
 
@@ -38,15 +41,24 @@ export default function QuestionAi() {
     setText(''); setThinking(true);
     setMsgs((m) => [...m, { id: `m${++mid}`, from: 'lecturer', text: msg }]);
     try {
-      const s = await aiRefine(id, msg);
-      setMsgs((m) => [...m, { id: `m${++mid}`, from: 'ai', text: s.notes, suggestion: s }]);
+      const s = await aiRefine(id, msg, chatId);
+      setMsgs((m) => [...m, s.refusalReason
+        ? { id: `m${++mid}`, from: 'ai', text: s.refusalReason }
+        : { id: `m${++mid}`, from: 'ai', text: 'Đây là bản chỉnh sửa tôi đề xuất, bạn xem trước nhé:', suggestion: s }]);
     } catch (e) {
       setMsgs((m) => [...m, { id: `m${++mid}`, from: 'ai', text: `Xin lỗi, có lỗi: ${(e as Error).message}` }]);
     } finally { setThinking(false); setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50); }
   };
-  const apply = async (mId: string, s: AiSuggestion) => {
+  /** approve = true: ghi đè câu hỏi bằng bản của AI; false: bỏ qua bản này. */
+  const apply = async (mId: string, s: AiSuggestion, approve: boolean) => {
     setApplying(mId);
-    try { await aiApply(id, s); setMsgs((m) => m.map((x) => (x.id === mId ? { ...x, applied: true } : x))); bump((n) => n + 1); } finally { setApplying(undefined); }
+    try {
+      await aiApply(id, s, approve);
+      setMsgs((m) => m.map((x) => (x.id === mId ? (approve ? { ...x, applied: true } : { ...x, discarded: true }) : x)));
+      bump((n) => n + 1);
+    } catch (e) {
+      setMsgs((m) => [...m, { id: `m${++mid}`, from: 'ai', text: `Không thực hiện được: ${(e as Error).message}` }]);
+    } finally { setApplying(undefined); }
   };
 
   return (
@@ -75,8 +87,20 @@ export default function QuestionAi() {
                           <Text style={{ fontWeight: '600', color: colors.text }}>{m.suggestion.content}</Text>
                           {m.suggestion.options.map((o, i) => <Text key={i} style={{ color: i === m.suggestion!.correctIndex ? colors.success : colors.text }}>{LETTERS[i]}. {o}</Text>)}
                           {m.suggestion.explanation ? <Muted>Giải thích: {m.suggestion.explanation}</Muted> : null}
+                          {m.suggestion.hallucinated ? (
+                            <View style={{ backgroundColor: colors.dangerSoft, borderRadius: 10, padding: 8, gap: 2 }}>
+                              <Text style={{ color: colors.danger, fontWeight: '600' }}>⚠️ Kiểm định phát hiện bản này có thể sai kiến thức. Hãy kiểm tra kỹ trước khi áp dụng.</Text>
+                              {m.suggestion.violations.slice(0, 3).map((v, k) => <Text key={k} style={{ color: colors.danger, fontSize: 13 }}>• {v.detail}</Text>)}
+                            </View>
+                          ) : m.suggestion.confidence !== undefined ? <Muted>Độ tin cậy kiểm định: {Math.round(m.suggestion.confidence * 100)}%</Muted> : null}
                           {m.applied ? <Text style={{ color: colors.success, fontWeight: '600' }}>✓ Đã áp dụng vào câu hỏi</Text>
-                            : <Button small title="Áp dụng phiên bản này" icon="checkmark" variant="success" loading={applying === m.id} onPress={() => apply(m.id, m.suggestion!)} />}
+                            : m.discarded ? <Muted>Đã bỏ qua bản này.</Muted>
+                            : (
+                              <Row>
+                                <Button small title="Áp dụng" icon="checkmark" variant="success" loading={applying === m.id} onPress={() => apply(m.id, m.suggestion!, true)} />
+                                <Button small title="Bỏ qua" variant="outline" disabled={applying === m.id} onPress={() => apply(m.id, m.suggestion!, false)} />
+                              </Row>
+                            )}
                         </View>
                       ) : null}
                     </Glass>

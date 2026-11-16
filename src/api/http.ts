@@ -57,7 +57,7 @@ export async function call<R>(
   options: CallOptions<R> = {},
 ): Promise<R> {
   if (isMock && options.useMock !== false) {
-    if (!mock) throw new Error('Chưa cấu hình dữ liệu mock cho API này.');
+    if (!mock) throw new Error('Chức năng này chưa có dữ liệu demo. Hãy chạy với backend thật (npm run dev) và đăng nhập.');
     await sleep();
     return mock();
   }

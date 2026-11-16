@@ -9,7 +9,6 @@ const STATUS: Record<AnyStatus, [string, string, string]> = {
   resolved: ['Đã xử lý', colors.success, colors.successSoft],
   approved: ['Đã duyệt', colors.success, colors.successSoft],
   rejected: ['Bị từ chối', colors.danger, colors.dangerSoft],
-  'needs-edit': ['Cần edit', colors.blue, colors.blueSoft],
 };
 export const statusLabel = (st: AnyStatus) => STATUS[st][0];
 export const StatusBadge = ({ status }: { status: AnyStatus }) => <Badge label={STATUS[status][0]} fg={STATUS[status][1]} bg={STATUS[status][2]} />;

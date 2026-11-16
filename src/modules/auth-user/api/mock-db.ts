@@ -114,6 +114,14 @@ const handlers = {
   resendVerify(email: string) {
     if (!users.some((x) => x.email === email.trim().toLowerCase())) throw new AuthError('Không tìm thấy người dùng', 404, 'USER_NOT_FOUND');
   },
+  requestEmailVerification(token: string | null) {
+    if (me(token).u.verified) throw new AuthError('Email đã được xác thực', 409, 'EMAIL_ALREADY_VERIFIED');
+  },
+  confirmEmailVerification(token: string | null, code: string) {
+    const { u } = me(token);
+    if (code !== MOCK_VERIFY_CODE) throw new AuthError('Mã OTP không chính xác hoặc đã hết hiệu lực', 400, 'VERIFICATION_CODE_INVALID', { code: 'Mã xác thực không đúng' });
+    u.verified = true;
+  },
   login(email: string, password: string, device: DeviceInfo) {
     invalid(collect({ email: email.trim() ? undefined : 'Trường này là bắt buộc', password: password ? undefined : 'Trường này là bắt buộc' }));
     const u = users.find((x) => x.email === email.trim().toLowerCase());

@@ -47,6 +47,10 @@ export const acceptFriendRequest = (requesterId: string) =>
 export const declineFriendRequest = (requesterId: string) =>
   api<unknown>('POST', '/friendships/decline', { body: { requester_id: A.toServerId(requesterId) }, mock: asMe((t) => mock.decline(t, requesterId)) }).then(done);
 
+/** DELETE /friendships/requests/sent/{receiverId} — rút lời mời kết bạn đã gửi. */
+export const cancelFriendRequest = (receiverId: string) =>
+  api<unknown>('DELETE', `/friendships/requests/sent/${enc(A.toServerId(receiverId))}`, { mock: asMe((t) => mock.cancel(t, receiverId)) }).then(done);
+
 /** DELETE /friendships/{friendId} */
 export const unfriend = (userId: string) =>
   api<unknown>('DELETE', `/friendships/${enc(userId)}`, { mock: asMe((t) => mock.unfriend(t, userId)) }).then(done);

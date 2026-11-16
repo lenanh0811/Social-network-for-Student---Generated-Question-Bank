@@ -4,9 +4,6 @@ import type { IconName, Role } from "@/types";
 /** Tên web (tạm: QuizHub) — đổi ở đây là cập nhật logo trên navbar. */
 export const BRAND = { first: "Quiz", second: "Hub", initial: "Q" };
 
-// ───────── Môn học (Ngân hàng câu hỏi) ─────────
-export const SUBJECTS = ["Công nghệ Web", "Cơ sở dữ liệu", "Mạng máy tính"];
-
 // ───────── Menu 3 gạch ─────────
 export interface MenuItem {
   label: string;
