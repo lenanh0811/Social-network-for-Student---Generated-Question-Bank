@@ -30,7 +30,7 @@ export default function UserProfileScreen() {
           <Card style={{ alignItems: 'center', paddingVertical: 28 }}>
             <Avatar name={u.name} size={88} />
             <H1>{u.name}</H1>
-            <Badge label={u.role === 'lecturer' ? 'Giảng viên' : 'Sinh viên'} fg={colors.primary} bg={colors.primarySoft} />
+            <Badge label={u.role === 'student' ? 'Sinh viên' : u.role === 'lecturer' ? 'Giảng viên' : 'Quản trị viên'} fg={colors.primary} bg={colors.primarySoft} />
             {u.bio ? <Text style={{ color: colors.text, textAlign: 'center' }}>{u.bio}</Text> : null}
           </Card>
           <RelationshipPanel userId={u.id} name={u.name} role={u.role} />

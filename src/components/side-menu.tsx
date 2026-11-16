@@ -65,7 +65,7 @@ export function SideMenu() {
             <Ionicons name="person-circle" size={48} color={colors.primary} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontWeight: '600', fontSize: 16, color: colors.text }} numberOfLines={1}>{user.name}</Text>
-              <Muted>{role === 'student' ? 'Sinh viên' : 'Giảng viên'}</Muted>
+              <Muted>{role === 'student' ? 'Sinh viên' : role === 'lecturer' ? 'Giảng viên' : 'Quản trị viên'}</Muted>
             </View>
             <Pressable onPress={() => setOpen(false)} hitSlop={8}><Ionicons name="close" size={24} color={colors.muted} /></Pressable>
           </View>

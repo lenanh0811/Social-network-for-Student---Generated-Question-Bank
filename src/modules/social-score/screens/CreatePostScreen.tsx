@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useAuth } from '@/context/auth';
 import { socialApi } from '../api/social-api';
 import type { media_asset, post, post_type, subject } from '../api/types';
 import { MediaUpload } from '../components/MediaUpload';
@@ -28,6 +29,8 @@ export function CreatePostScreen({
   onCancel: () => void;
   onCreated: (post: post) => void;
 }) {
+  const { role } = useAuth();
+  const canPostLearningVideo = role === 'lecturer' || role === 'admin';
   const [content, setContent] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [postType, setPostType] = useState<post_type>('SOCIAL_POST');
@@ -59,6 +62,8 @@ export function CreatePostScreen({
     fetchSubjects();
   };
 
+  const publishDisabled = saving || (postType === 'LEARNING_VIDEO' && (loadingSubjects || !subjects.length || !subjectId));
+
   const submit = async () => {
     const trimmed = content.trim();
     if (!trimmed) {
@@ -69,12 +74,21 @@ export function CreatePostScreen({
       Alert.alert('Nội dung quá dài', `Bài viết tối đa ${MAX_POST_WORDS} từ.`);
       return;
     }
-    const selectedSubject = subjects.find((subject) => subject.id === subjectId);
-    if (!selectedSubject || !Number.isSafeInteger(Number(selectedSubject.id)) || Number(selectedSubject.id) <= 0) {
-      Alert.alert('Thiếu môn học', 'Hãy chọn môn học trước khi đăng bài.');
+    if (postType === 'LEARNING_VIDEO' && !canPostLearningVideo) {
+      Alert.alert('Không có quyền đăng video', 'Chỉ giảng viên hoặc quản trị viên được đăng video bài giảng.');
       return;
     }
-    if (media.some((asset) => asset.mediaType === 'video') && postType !== 'LEARNING_VIDEO') {
+    const selectedSubject = subjects.find((subject) => subject.id === subjectId);
+    if (postType === 'LEARNING_VIDEO' && (!selectedSubject || !Number.isSafeInteger(Number(selectedSubject.id)) || Number(selectedSubject.id) <= 0)) {
+      Alert.alert('Thiếu môn học', 'Hãy chọn môn học cho video bài giảng.');
+      return;
+    }
+    const hasVideo = media.some((asset) => asset.mediaType === 'video');
+    if (hasVideo && !canPostLearningVideo) {
+      Alert.alert('Không có quyền đăng video', 'Chỉ giảng viên hoặc quản trị viên được đăng video bài giảng.');
+      return;
+    }
+    if (hasVideo && postType !== 'LEARNING_VIDEO') {
       Alert.alert('Loại bài viết chưa đúng', 'Hãy chọn “Video học tập” để đăng video.');
       return;
     }
@@ -84,7 +98,7 @@ export function CreatePostScreen({
       const post = await socialApi.createPost({
         content: trimmed,
         media,
-        subjectId: selectedSubject.id,
+        subjectId: postType === 'LEARNING_VIDEO' ? selectedSubject?.id : undefined,
         postType,
       });
       onCreated(post);
@@ -102,8 +116,8 @@ export function CreatePostScreen({
           <Text style={styles.cancel}>Hủy</Text>
         </Pressable>
         <Text style={styles.title}>Tạo bài viết</Text>
-        <Pressable disabled={saving || loadingSubjects || !subjects.length || !subjectId} onPress={submit}>
-          <Text style={[styles.publish, (saving || loadingSubjects || !subjects.length || !subjectId) && styles.disabled]}>{saving ? 'Đang đăng…' : 'Đăng'}</Text>
+        <Pressable disabled={publishDisabled} onPress={submit}>
+          <Text style={[styles.publish, publishDisabled && styles.disabled]}>{saving ? 'Đang đăng…' : 'Đăng'}</Text>
         </Pressable>
       </View>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
@@ -119,36 +133,40 @@ export function CreatePostScreen({
           textAlignVertical="top"
         />
         <Text style={styles.counter}>{wordCount(content)}/{MAX_POST_WORDS} từ</Text>
-        <Text style={styles.fieldLabel}>Môn học (bắt buộc cho mọi bài viết)</Text>
-        {loadingSubjects ? (
-          <Text style={styles.helper}>Đang tải danh sách môn học…</Text>
-        ) : subjectError ? (
-          <View>
-            <Text accessibilityRole="alert" style={styles.subjectError}>{subjectError}</Text>
-            <Pressable onPress={retryLoadSubjects} disabled={loadingSubjects}>
-              <Text style={styles.retry}>Thử tải lại</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <View style={styles.subjectList}>
-            {subjects.map((subject) => (
-              <Pressable
-                key={subject.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: subjectId === subject.id }}
-                onPress={() => setSubjectId(subject.id)}
-                style={[styles.subjectOption, subjectId === subject.id && styles.selectedSubject]}
-              >
-                <Text style={[styles.subjectName, subjectId === subject.id && styles.selectedSubjectName]}>
-                  {subject.name} · {subject.code}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
+        {postType === 'LEARNING_VIDEO' ? (
+          <>
+            <Text style={styles.fieldLabel}>Môn học (bắt buộc)</Text>
+            {loadingSubjects ? (
+              <Text style={styles.helper}>Đang tải danh sách môn học…</Text>
+            ) : subjectError ? (
+              <View>
+                <Text accessibilityRole="alert" style={styles.subjectError}>{subjectError}</Text>
+                <Pressable onPress={retryLoadSubjects} disabled={loadingSubjects}>
+                  <Text style={styles.retry}>Thử tải lại</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.subjectList}>
+                {subjects.map((subject) => (
+                  <Pressable
+                    key={subject.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: subjectId === subject.id }}
+                    onPress={() => setSubjectId(subject.id)}
+                    style={[styles.subjectOption, subjectId === subject.id && styles.selectedSubject]}
+                  >
+                    <Text style={[styles.subjectName, subjectId === subject.id && styles.selectedSubjectName]}>
+                      {subject.name} · {subject.code}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </>
+        ) : null}
         <Text style={styles.fieldLabel}>Loại bài viết</Text>
         <View style={styles.typeRow}>
-          {POST_TYPES.map((option) => (
+          {(canPostLearningVideo ? POST_TYPES : [POST_TYPES[0]]).map((option) => (
             <Pressable
               key={option.type}
               onPress={() => setPostType(option.type)}

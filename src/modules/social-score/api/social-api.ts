@@ -38,7 +38,7 @@ const toId = A.toApiId;
 type post_input = {
   content: string;
   media: media_asset[];
-  subjectId: string;
+  subjectId?: string;
   postType: post_type;
   visibility?: visibility_type;
 };
@@ -67,11 +67,13 @@ function pageFromActivity(value: unknown): feed_page {
     if (item.target_type !== 'POST') return [];
     const content = asRecord(item.content);
     return [A.toPost({
+      ...item,
       ...content,
       post_id: content.post_id ?? item.target_id,
-      content: content.text ?? content.content,
-      react_count: content.like_count ?? content.react_count,
-      comment_count: content.comment_count,
+      content: content.content ?? content.text ?? content.description ?? content.title
+        ?? item.description ?? item.text ?? item.title,
+      react_count: content.like_count ?? content.react_count ?? item.like_count ?? item.react_count,
+      comment_count: content.comment_count ?? item.comment_count,
     }, item.actor)];
   });
   return { posts, ...A.toPage(value) };
@@ -185,8 +187,11 @@ export async function getPost(id: string): Promise<post> {
 
 /** POST /posts — đăng bài viết hoặc video bài giảng. */
 export async function createPost(input: post_input): Promise<post> {
-  const subjectId = input.subjectId.trim();
-  if (!/^\d+$/.test(subjectId) || !Number.isSafeInteger(Number(subjectId)) || Number(subjectId) <= 0) {
+  const subjectId = input.postType === 'LEARNING_VIDEO' ? input.subjectId?.trim() : undefined;
+  if (input.postType === 'LEARNING_VIDEO' && !subjectId) {
+    throw new Error('Video bài giảng cần có môn học.');
+  }
+  if (subjectId && (!/^\d+$/.test(subjectId) || !Number.isSafeInteger(Number(subjectId)) || Number(subjectId) <= 0)) {
     throw new Error('ID môn học phải là số nguyên dương hợp lệ.');
   }
   const result = await api<raw_post | post>('POST', '/posts', {
@@ -195,7 +200,7 @@ export async function createPost(input: post_input): Promise<post> {
       media_urls: A.toMediaItems(input.media),
       visibility: input.visibility ?? 'PUBLIC',
       post_type: input.postType,
-      subject_id: toId(subjectId),
+      ...(subjectId ? { subject_id: toId(subjectId) } : {}),
     },
     mock: () => M.mockCreatePost(input),
   });

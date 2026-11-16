@@ -55,7 +55,7 @@ export interface Device {
 export interface RegisterInput {
   email: string;
   password: string;
-  role: Role;
+  role: Exclude<Role, 'admin'>;
 }
 
 /** Các trường PUT /users/me cho phép sửa. */

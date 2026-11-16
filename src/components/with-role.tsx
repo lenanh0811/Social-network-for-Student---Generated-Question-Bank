@@ -5,7 +5,7 @@ import { Empty } from '@/components/empty';
 import { Header } from '@/components/header';
 import { Screen } from '@/components/screen';
 
-const NAME: Record<Role, string> = { student: 'sinh viên', lecturer: 'giảng viên' };
+const NAME: Record<Role, string> = { student: 'sinh viên', lecturer: 'giảng viên', admin: 'quản trị viên' };
 
 /** Bọc màn hình: chỉ các vai trò trong `roles` được xem, vai trò khác thấy thông báo. */
 export function withRole<P extends object>(Comp: ComponentType<P>, roles: Role[]) {

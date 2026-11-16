@@ -18,7 +18,7 @@ import { Segmented } from '@/components/segmented';
  */
 export default function RegisterScreen() {
   const [f, setF] = useState({ email: '', password: '', confirm: '' });
-  const [role, setRole] = useState<Role>('student');
+  const [role, setRole] = useState<Exclude<Role, 'admin'>>('student');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
