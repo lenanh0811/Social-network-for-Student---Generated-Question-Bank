@@ -42,7 +42,7 @@ export default function QuestionDetail() {
       <Card>
         <Row>{q.difficulty ? <DifficultyBadge d={q.difficulty} /> : null}<Muted>{[q.topic, q.subject].filter(Boolean).join(' · ')}</Muted></Row>
         <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>{q.content}</Text>
-        <Muted>Đóng góp bởi {q.authorName}</Muted>
+        {q.authorName ? <Muted>Đóng góp bởi {q.authorName}</Muted> : null}
         {role === 'lecturer' ? (
           <Row>
             <Button small variant="outline" icon="create-outline" title="Sửa" onPress={() => go(`/exam-bank/question/edit/${id}`)} />
@@ -60,7 +60,11 @@ function AnswerTab({ id, options }: { id: string; options: string[] }) {
   const [pick, setPick] = useState<number>();
   const [res, setRes] = useState<AnswerResult>();
   const [busy, setBusy] = useState(false);
-  const submit = async () => { setBusy(true); try { setRes(await answerQuestion(id, pick!)); } finally { setBusy(false); } };
+  const [err, setErr] = useState<string>();
+  const submit = async () => {
+    setBusy(true); setErr(undefined);
+    try { setRes(await answerQuestion(id, pick!)); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
   return (
     <>
       {options.map((o, i) => {
@@ -84,13 +88,18 @@ function AnswerTab({ id, options }: { id: string; options: string[] }) {
           <Text style={{ fontWeight: '600', fontSize: 16, color: res.correct ? colors.success : colors.danger }}>{res.correct ? 'Chính xác! 🎉' : `Chưa đúng — đáp án đúng là ${LETTERS[res.correctIndex]}`}</Text>
           {res.explanation ? <Text style={{ color: colors.text }}>{res.explanation}</Text> : null}
         </Card>
-      ) : <Button title="Nộp đáp án" disabled={pick === undefined} loading={busy} onPress={submit} />}
+      ) : (
+        <>
+          {err ? <Text style={{ color: colors.danger, fontWeight: '600' }}>{err}</Text> : null}
+          <Button title="Nộp đáp án" disabled={pick === undefined} loading={busy} onPress={submit} />
+        </>
+      )}
     </>
   );
 }
 
 function StatsTab({ id, options, correct }: { id: string; options: string[]; correct: number }) {
-  const { data, loading, error, reload } = useLoad(() => getQuestionStatistics(id), [id]);
+  const { data, loading, error, reload } = useLoad(() => getQuestionStatistics(id, options.length), [id, options.length]);
   if (loading && !data) return <Loading />;
   if (!data) return <ErrorBox message={error ?? 'Lỗi'} onRetry={reload} />;
   const max = Math.max(1, ...data.distribution);
@@ -100,6 +109,12 @@ function StatsTab({ id, options, correct }: { id: string; options: string[]; cor
         <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '600', color: colors.primary }}>{data.totalAnswers}</Text><Muted>lượt trả lời</Muted></View>
         <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 28, fontWeight: '600', color: colors.success }}>{Math.round(data.correctRate * 100)}%</Text><Muted>trả lời đúng</Muted></View>
       </Row>
+      {data.rating ? (
+        <Row style={{ gap: 8 }}>
+          <Stars value={data.rating.average} size={18} />
+          <Muted>{data.rating.total ? `${data.rating.average.toFixed(1)}/5 từ ${data.rating.total} đánh giá` : 'Chưa có đánh giá'}</Muted>
+        </Row>
+      ) : null}
       <H2>Phân bố lựa chọn</H2>
       {options.map((o, i) => (
         <View key={i} style={{ gap: 4 }}>
@@ -119,13 +134,19 @@ function RatingsTab({ id }: { id: string }) {
   const [stars, setStars] = useState(0);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
-  const send = async () => { setBusy(true); try { await rateQuestion(id, stars, comment.trim() || undefined); setStars(0); setComment(''); await reload(); } finally { setBusy(false); } };
+  const [err, setErr] = useState<string>();
+  const send = async () => {
+    setBusy(true); setErr(undefined);
+    try { await rateQuestion(id, stars, comment.trim() || undefined); setStars(0); setComment(''); await reload(); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
   return (
     <>
       <Card>
         <H2>Đánh giá câu hỏi này</H2>
         <Stars value={stars} onChange={setStars} size={32} />
         <Field label="Nhận xét (không bắt buộc)" value={comment} onChangeText={setComment} multiline placeholder="Câu hỏi có rõ ràng, đáp án có chính xác không?" />
+        {err ? <Text style={{ color: colors.danger, fontWeight: '600' }}>{err}</Text> : null}
         <Button title="Gửi đánh giá" disabled={!stars} loading={busy} onPress={send} />
       </Card>
       <ReportError id={id} />
@@ -143,7 +164,7 @@ function RatingsTab({ id }: { id: string }) {
   );
 }
 
-/** Minigame 5 – báo câu sai đề / sai đáp án (đánh giá với is_error). Giảng viên sẽ thẩm định. */
+/** Minigame 5 – báo câu sai đề / sai đáp án (PUT /questions/{id}/report). Giảng viên sẽ thẩm định. */
 function ReportError({ id }: { id: string }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');

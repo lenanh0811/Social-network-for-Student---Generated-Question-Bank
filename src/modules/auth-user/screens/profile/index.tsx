@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useState } from 'react';
-import { getCheckIn, getLeaderboard, listNeedsEdit, listPendingSessions, listUserQuestions } from '@/modules/exam-bank/api/client';
+import { countApprovedQuestions, getCheckIn, getLeaderboard, listReviewableSessions } from '@/modules/exam-bank/api/client';
 import { isMock } from '@/modules/auth-user/api/client';
 import { ActionRow, InfoRow, Notice } from '@/modules/auth-user/components/auth-ui';
 import { useAuth } from '@/context/auth';
@@ -54,7 +54,6 @@ export default function ProfileScreen() {
       <Shortcuts />
       <Card style={{ paddingVertical: 4 }}>
         <ActionRow icon="key-outline" label="Đổi mật khẩu" onPress={() => go('/account/password')} />
-        <ActionRow icon="people-outline" label="Bạn bè & theo dõi" onPress={() => go('/friends')} />
         <ActionRow icon="ban-outline" label="Người dùng đã chặn" onPress={() => go('/account/blocked')} />
         <ActionRow icon="phone-portrait-outline" label="Thiết bị đăng nhập" onPress={() => go('/account/devices')} />
         <ActionRow icon="albums-outline" label="Câu hỏi đã được duyệt của tôi" onPress={() => go(`/exam-bank/user/${user.id}`)} last />
@@ -71,6 +70,11 @@ export default function ProfileScreen() {
 
   return (
     <Screen wide onRefresh={onRefresh} refreshing={refreshing}>
+      {user.verified ? null : (
+        <Notice tone="info" action={<Button small variant="outline" title="Xác thực ngay" onPress={() => go('/account/verify-email')} />}>
+          Email của bạn chưa được xác thực. Hãy xác thực để dùng đầy đủ tính năng.
+        </Notice>
+      )}
       {user.profileCompleted === false ? (
         <Notice tone="info" action={<Button small variant="outline" title="Cập nhật ngay" onPress={() => go('/account/edit')} />}>
           Hồ sơ của bạn chưa hoàn thiện. Hãy bổ sung họ tên, ngày sinh và giới thiệu.
@@ -137,25 +141,23 @@ function StudentStats() {
   const { user } = useAuth();
   const board = useLoad(() => getLeaderboard('SEMESTER'));
   const checkin = useLoad(getCheckIn);
-  const approved = useLoad(() => listUserQuestions(user.id), [user.id]);
+  const approved = useLoad(() => countApprovedQuestions(user.id), [user.id]);
   const me = board.data?.myRank;
   return (
     <StatGrid items={[
       { label: 'Điểm học kỳ', value: me?.points, onPress: () => go('/games') },
       { label: 'Hạng', value: me ? `#${me.rank}` : undefined, onPress: () => go('/games') },
       { label: 'Chuỗi điểm danh (ngày)', value: checkin.data?.streak },
-      { label: 'Câu hỏi đã duyệt', value: approved.data?.length, onPress: () => go(`/exam-bank/user/${user.id}`) },
+      { label: 'Câu hỏi đã duyệt', value: approved.data, onPress: () => go(`/exam-bank/user/${user.id}`) },
     ]} />
   );
 }
 
 function LecturerStats() {
-  const pending = useLoad(listPendingSessions);
-  const needs = useLoad(listNeedsEdit);
+  const pending = useLoad(listReviewableSessions);
   return (
     <StatGrid items={[
       { label: 'Phiên chờ duyệt', value: pending.data?.length, onPress: () => go('/review') },
-      { label: 'Câu hỏi “Cần edit”', value: needs.data?.length, onPress: () => go('/review') },
     ]} />
   );
 }

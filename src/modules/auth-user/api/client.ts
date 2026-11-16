@@ -226,29 +226,6 @@ const toDevice = (d: Raw): Device => ({
 const asUser = (u: unknown) => (isMock ? (u as UserProfile) : toUser(u as Raw));
 
 // ───────── /auth ─────────
-/**
- * POST /auth/admin/register — theo Swagger đây là API admin ("không cần gọi và không được gọi")
- * và đang bị chặn ngoài Tailscale VPN. Chỉ dùng được ở chế độ demo; app thật dùng tài khoản nhà trường cấp.
- */
-export const canSelfRegister = isMock;
-export async function register(p: RegisterInput) {
-  const d = await device();
-  const email = p.email.trim().toLowerCase();
-  await open('POST', '/auth/admin/register', {
-    email, password: p.password, device_id: d.id, role: p.role.toUpperCase(), timezone: 'Asia/Ho_Chi_Minh',
-  }, () => mock.register({ ...p, email }));
-  return { email };
-}
-
-/** POST /auth/admin/verify (API admin — xem `register`). */
-export async function verify(email: string, code: string) {
-  const d = await device();
-  await open('POST', '/auth/admin/verify', { email, verify_code: code, device_id: d.id }, () => mock.verify(email, code));
-}
-
-/** POST /auth/admin/resend-verify (API admin — xem `register`). */
-export const resendVerify = (email: string) =>
-  open('POST', '/auth/admin/resend-verify', { email }, () => mock.resendVerify(email)).then(() => undefined);
 
 /** POST /auth/login — lưu phiên, rồi GET /users/me để lấy hồ sơ đầy đủ. */
 export async function login(email: string, password: string): Promise<UserProfile> {
@@ -268,6 +245,39 @@ export async function login(email: string, password: string): Promise<UserProfil
   await setSession(toSession(res));
   return getMe();
 }
+
+/** POST /auth/email-verification/request — gửi mã xác thực tới email của tài khoản đang đăng nhập. 409 nếu mã cũ còn hiệu lực. */
+export const requestEmailVerification = () =>
+  authed('POST', '/auth/email-verification/request', undefined, (t) => mock.requestEmailVerification(t)).then(() => undefined);
+
+/** POST /auth/email-verification/confirm — xác nhận email bằng mã 6 số (400 nếu sai/hết hạn). */
+export const confirmEmailVerification = (code: string) =>
+  authed('POST', '/auth/email-verification/confirm', { verify_code: code }, (t) => mock.confirmEmailVerification(t, code))
+    .then(() => undefined);
+
+/**
+ * API admin (chưa đăng nhập): server thật không cho tự đăng ký nên chỉ dùng ở chế độ demo (mock).
+ * Người dùng thật xác thực email qua requestEmailVerification / confirmEmailVerification sau khi đăng nhập.
+ */
+export const canSelfRegister = isMock;
+const adminOnly = () => { throw new AuthError('Chức năng này chỉ dành cho quản trị viên', 403, 'FORBIDDEN'); };
+export const register = async (p: RegisterInput) => {
+  const email = p.email.trim().toLowerCase();
+  if (!isMock) return adminOnly();
+  await sleep();
+  mock.register({ ...p, email });
+  return { email };
+};
+export const verify = async (email: string, code: string) => {
+  if (!isMock) return adminOnly();
+  await sleep();
+  mock.verify(email, code);
+};
+export const resendVerify = async (email: string) => {
+  if (!isMock) return adminOnly();
+  await sleep();
+  mock.resendVerify(email);
+};
 
 /** POST /auth/logout — server thu hồi refresh token + FCM token. Luôn xoá phiên cục bộ kể cả khi lỗi. */
 export async function logout() {

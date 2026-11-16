@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Notice } from '@/modules/auth-user/components/auth-ui';
 import {
-  acceptFriendRequest, block, declineFriendRequest, follow, getRelationship, sendFriendRequest, unblock, unfollow, unfriend,
+  acceptFriendRequest, block, cancelFriendRequest, declineFriendRequest, follow, getRelationship, sendFriendRequest, unblock, unfollow, unfriend,
 } from '@/modules/relationship-privacy/api/client';
 import type { Relationship } from '@/modules/relationship-privacy/api/types';
 import { useAuth } from '@/context/auth';
@@ -61,6 +61,10 @@ export function RelationshipPanel({ userId, name, role }: { userId: string; name
     }, `Bạn và ${name} đã là bạn bè.`),
     decline: () => run('decline', async () => {
       await declineFriendRequest(userId);
+      patch({ friend: 'none' });
+    }),
+    cancel: () => run('friend', async () => {
+      await cancelFriendRequest(userId);
       patch({ friend: 'none' });
     }),
     unfriend: () => run('friend', async () => {
@@ -125,7 +129,7 @@ export function RelationshipPanel({ userId, name, role }: { userId: string; name
             {!sameRole ? null : rel.friend === 'none' ? (
               <Button title="Kết bạn" icon="person-add-outline" small loading={busy === 'friend'} onPress={actions.request} />
             ) : rel.friend === 'outgoing' ? (
-              <Button title="Đã gửi lời mời" icon="time-outline" small variant="soft" disabled onPress={() => undefined} />
+              <Button title="Rút lời mời" icon="close-outline" small variant="soft" loading={busy === 'friend'} onPress={actions.cancel} />
             ) : rel.friend === 'incoming' ? (
               <>
                 <Button title="Chấp nhận" icon="checkmark" small variant="success" loading={busy === 'friend'} onPress={actions.accept} />
