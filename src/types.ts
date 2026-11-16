@@ -1,7 +1,7 @@
 import type { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 
-export type Role = 'student' | 'lecturer';
+export type Role = 'student' | 'lecturer' | 'admin';
 export interface User { id: string; name: string; role: Role }
 
 /** Tên icon Ionicons dùng trong toàn app. */

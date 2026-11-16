@@ -11,7 +11,7 @@ export function Glass({ children, style, strong, intensity = glass.blur }: {
   const { backgroundColor, ...rest } = StyleSheet.flatten(style) ?? {};
   return (
     <View style={[styles.glass, rest]}>
-      <BlurView intensity={intensity} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView pointerEvents="none" intensity={intensity} tint="light" style={StyleSheet.absoluteFill} />
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: backgroundColor ?? (strong ? glass.tintStrong : glass.tint) }]} />
       <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0.6, y: 0.5 }} style={StyleSheet.absoluteFill} />
       {children}

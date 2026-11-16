@@ -69,7 +69,7 @@ export default function EditProfileScreen() {
       <Card>
         <H2>Thông tin do nhà trường quản lý</H2>
         <Muted>Liên hệ phòng đào tạo nếu các thông tin dưới đây chưa đúng.</Muted>
-        <InfoRow icon="id-card-outline" label={role === 'lecturer' ? 'Mã cán bộ' : 'MSSV'} value={user.code} />
+        <InfoRow icon="id-card-outline" label={role === 'student' ? 'MSSV' : role === 'lecturer' ? 'Mã cán bộ' : 'Mã quản trị viên'} value={user.code} />
         <InfoRow icon="business-outline" label="Khoa / Trường" value={user.faculty} />
         {role === 'student' ? <InfoRow icon="school-outline" label="Chuyên ngành" value={user.major} /> : null}
         {role === 'student' ? <InfoRow icon="people-outline" label="Lớp" value={user.className} /> : null}

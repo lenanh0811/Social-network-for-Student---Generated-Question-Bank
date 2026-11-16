@@ -190,7 +190,12 @@ const open = async <R>(method: string, path: string, body: unknown, mockFn: () =
 // ───────── Ánh xạ dữ liệu server (snake_case) ─────────
 type Raw = Record<string, unknown>;
 const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
-const toRole = (v: unknown): Role => (String(v ?? '').toUpperCase() === 'LECTURER' ? 'lecturer' : 'student');
+const toRole = (v: unknown): Role => {
+  const role = String(v ?? '').toUpperCase();
+  if (role === 'LECTURER') return 'lecturer';
+  if (role === 'ADMIN') return 'admin';
+  return 'student';
+};
 const toGender = (v: unknown): Gender | undefined => (v === 'MALE' || v === 'FEMALE' ? v : undefined);
 
 export function toUser(u: Raw): UserProfile {

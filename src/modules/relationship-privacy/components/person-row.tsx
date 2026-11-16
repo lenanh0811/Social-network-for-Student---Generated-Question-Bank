@@ -42,7 +42,7 @@ export function PersonRow({ person, subtitle, children, last }: {
 
 /** "3 bạn chung · 2 ngày trước" */
 export const describe = (p: Person, verb?: string) =>
-  [p.role === 'lecturer' ? 'Giảng viên' : null, p.mutualFriends ? `${p.mutualFriends} bạn chung` : null, p.since ? `${verb ? `${verb} ` : ''}${ago(p.since)}` : null]
+  [p.role === 'lecturer' ? 'Giảng viên' : p.role === 'admin' ? 'Quản trị viên' : null, p.mutualFriends ? `${p.mutualFriends} bạn chung` : null, p.since ? `${verb ? `${verb} ` : ''}${ago(p.since)}` : null]
     .filter(Boolean).join(' · ');
 
 const s = StyleSheet.create({

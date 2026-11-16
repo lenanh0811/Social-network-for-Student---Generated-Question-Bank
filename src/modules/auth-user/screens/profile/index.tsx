@@ -37,7 +37,7 @@ export default function ProfileScreen() {
       <Hero />
       <Card>
         <H2>Thông tin cá nhân</H2>
-        <InfoRow icon="id-card-outline" label={role === 'lecturer' ? 'Mã cán bộ' : 'MSSV'} value={user.code} />
+        <InfoRow icon="id-card-outline" label={role === 'student' ? 'MSSV' : role === 'lecturer' ? 'Mã cán bộ' : 'Mã quản trị viên'} value={user.code} />
         <InfoRow icon="business-outline" label="Khoa / Trường" value={user.faculty} />
         {role === 'student' ? <InfoRow icon="school-outline" label="Chuyên ngành" value={user.major} /> : null}
         {role === 'student' ? <InfoRow icon="people-outline" label="Lớp" value={user.className} /> : null}
@@ -50,7 +50,7 @@ export default function ProfileScreen() {
   );
   const right = (
     <>
-      {role === 'lecturer' ? <LecturerStats /> : <StudentStats />}
+      {role === 'lecturer' ? <LecturerStats /> : role === 'student' ? <StudentStats /> : null}
       <Shortcuts />
       <Card style={{ paddingVertical: 4 }}>
         <ActionRow icon="key-outline" label="Đổi mật khẩu" onPress={() => go('/account/password')} />
@@ -111,7 +111,7 @@ function Hero() {
         <Text style={{ fontSize: 24, fontWeight: '700', color: colors.text, letterSpacing: -0.4, marginTop: 6 }}>{user.name}</Text>
         {user.faculty ? <Muted style={{ fontSize: 14 }}>{[user.faculty, role === 'student' ? user.major : undefined].filter(Boolean).join(' · ')}</Muted> : null}
         <Row>
-          <Badge label={role === 'lecturer' ? 'Giảng viên' : 'Sinh viên'} fg={colors.primary} bg={colors.primarySoft} />
+          <Badge label={role === 'student' ? 'Sinh viên' : role === 'lecturer' ? 'Giảng viên' : 'Quản trị viên'} fg={colors.primary} bg={colors.primarySoft} />
           {user.verified
             ? <Badge label="Đã xác thực" fg={colors.success} bg={colors.successSoft} />
             : <Badge label="Chưa xác thực" fg={colors.warning} bg={colors.warningSoft} />}

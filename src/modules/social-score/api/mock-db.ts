@@ -98,10 +98,11 @@ export function mockSubjects() {
 export function mockCreatePost(input: {
   content: string;
   media: media_asset[];
-  subjectId: string;
+  subjectId?: string;
   postType: post['postType'];
 }) {
-  const subject = MOCK_SUBJECTS.find((item) => item.id === input.subjectId);
+  const subjectId = input.postType === 'LEARNING_VIDEO' ? input.subjectId : undefined;
+  const subject = subjectId ? MOCK_SUBJECTS.find((item) => item.id === subjectId) : undefined;
   const post: post = {
     id: String(nextPostId++),
     content: input.content,
@@ -110,7 +111,7 @@ export function mockCreatePost(input: {
     mediaUrls: input.media.flatMap((asset) => asset.url ? [asset.url] : []),
     visibility: 'PUBLIC',
     postType: input.postType,
-    subjectId: input.subjectId,
+    subjectId,
     subjectName: subject?.name,
     subjectCode: subject?.code,
     reactionCount: 0,

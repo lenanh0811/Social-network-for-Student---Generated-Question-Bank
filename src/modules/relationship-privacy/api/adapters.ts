@@ -8,7 +8,10 @@ import type { FriendState, Person, PersonList, Relationship, ReportResult } from
 type Raw = Record<string, unknown>;
 const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 const num = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0);
-const toRole = (v: unknown): Role | undefined => (v === 'LECTURER' ? 'lecturer' : v === 'STUDENT' ? 'student' : undefined);
+const toRole = (v: unknown): Role | undefined => {
+  const role = String(v ?? '').toUpperCase();
+  return role === 'LECTURER' ? 'lecturer' : role === 'STUDENT' ? 'student' : role === 'ADMIN' ? 'admin' : undefined;
+};
 
 /** Id trên server là số (int64). */
 export const toServerId = (id: string) => (/^\d+$/.test(id) ? Number(id) : id);
