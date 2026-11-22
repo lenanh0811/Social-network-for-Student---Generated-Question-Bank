@@ -6,7 +6,6 @@ import {
   type StompSubscription,
 } from "@stomp/stompjs";
 import {
-  getConversationTypingDestination,
   STOMP_CONFIG,
   STOMP_DESTINATIONS,
   STOMP_WEBSOCKET_URL,
@@ -20,7 +19,6 @@ import type {
 
 export type StompClientHandlers = {
   onMessage: (frame: IMessage) => void;
-  onTyping: (frame: IMessage) => void;
   onConnect?: (frame: IFrame) => void;
   onDisconnect?: () => void;
   onError?: (message: string) => void;
@@ -33,11 +31,6 @@ const isAuthError = (message: string) =>
 export class ChatStompClient {
   readonly client: Client;
   private userSubscription: StompSubscription | null = null;
-  private readonly typingSubscriptions = new Map<number, StompSubscription>();
-  private readonly typingHandlers = new Map<
-    number,
-    (frame: IMessage) => void
-  >();
   private readonly publishQueue: QueuedPublish[] = [];
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private handlers: StompClientHandlers | null = null;
@@ -78,14 +71,11 @@ export class ChatStompClient {
       this.authRetryCount = 0;
       // Subscription handles belong to the previous socket and must not be reused.
       this.userSubscription = null;
-      this.typingSubscriptions.clear();
       this.subscribeUserMessages(handlers.onMessage);
       if (__DEV__) console.info("[Chat] STOMP CONNECTED; đã gửi SUBSCRIBE /user/queue/messages", {
         subscription: "chat-user-messages",
         serverUser: frame.headers["user-name"] ?? "(server không cung cấp header user-name)",
       });
-      for (const [conversationId, handler] of this.typingHandlers)
-        this.subscribeTyping(conversationId, handler);
       this.flushPublishQueue();
       handlers.onConnect?.(frame);
     };
@@ -134,19 +124,7 @@ export class ChatStompClient {
   dispose() {
     this.disconnect();
     this.publishQueue.length = 0;
-    this.typingHandlers.clear();
     if (singleton === this) singleton = null;
-  }
-
-  joinConversation(conversationId: number, handler: (frame: IMessage) => void) {
-    this.typingHandlers.set(conversationId, handler);
-    if (this.client.connected) this.subscribeTyping(conversationId, handler);
-  }
-
-  leaveConversation(conversationId: number) {
-    this.typingSubscriptions.get(conversationId)?.unsubscribe();
-    this.typingSubscriptions.delete(conversationId);
-    this.typingHandlers.delete(conversationId);
   }
 
   sendMessage(body: SendWsMessageRequest) {
@@ -158,7 +136,8 @@ export class ChatStompClient {
   }
 
   sendTyping(body: TypingWsRequest) {
-    this.publish(STOMP_DESTINATIONS.TYPING, body);
+    // Typing is transient: never replay stale keystrokes after reconnecting.
+    if (this.client.connected) this.publish(STOMP_DESTINATIONS.TYPING, body);
   }
 
   private publish(destination: string, body: object) {
@@ -228,9 +207,6 @@ export class ChatStompClient {
   private unsubscribeAll() {
     if (this.client.connected) this.userSubscription?.unsubscribe();
     this.userSubscription = null;
-    for (const subscription of this.typingSubscriptions.values())
-      if (this.client.connected) subscription.unsubscribe();
-    this.typingSubscriptions.clear();
   }
 
   private subscribeUserMessages(handler: (frame: IMessage) => void) {
@@ -242,19 +218,7 @@ export class ChatStompClient {
     );
   }
 
-  private subscribeTyping(
-    conversationId: number,
-    handler: (frame: IMessage) => void,
-  ) {
-    this.typingSubscriptions.get(conversationId)?.unsubscribe();
-    this.typingSubscriptions.set(
-      conversationId,
-      this.client.subscribe(
-        getConversationTypingDestination(conversationId),
-        handler,
-      ),
-    );
-  }
+
 }
 
 let singleton: ChatStompClient | null = null;

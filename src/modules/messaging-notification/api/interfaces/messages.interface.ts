@@ -5,7 +5,6 @@ import type {
   WsReadBy,
 } from "@/modules/messaging-notification/api/realtime/stomp.types";
 
-export type ApiEnvelope<T> = { code: string; message: string; data: T };
 export type DeleteMessageScope = "me" | "everyone";
 export type DeleteMessageResult = { messageId: Id; scope: DeleteMessageScope; note?: string };
 export type Pagination = {
@@ -63,19 +62,3 @@ export type GetConversationMessagesData = {
   messages: ConversationMessage[];
   pagination: Pagination;
 };
-export type DirectConversation = {
-  conversationId: Id;
-  type: "direct";
-  name?: string;
-  avatarUrl?: string | null;
-  members: {
-    userId: Id;
-    fullName: string;
-    avatarUrl?: string | null;
-    frameUrl?: string | null;
-    role?: string;
-    createdAt?: string;
-  }[];
-  createdAt?: string;
-};
-export type CreateDirectConversationResponse = DirectConversation;

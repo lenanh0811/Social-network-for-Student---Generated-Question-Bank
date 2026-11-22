@@ -16,6 +16,3 @@ export const STOMP_DESTINATIONS = {
   TYPING: "/app/chat.typing",
   USER_MESSAGES: "/user/queue/messages",
 } as const;
-export const getConversationTypingDestination = (
-  conversationId: string | number,
-) => `/topic/conv.${conversationId}.typing`;

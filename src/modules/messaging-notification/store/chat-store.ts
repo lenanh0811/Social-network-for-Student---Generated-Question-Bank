@@ -10,7 +10,6 @@ import type { Conversation, DeleteMessageScope } from "@/modules/messaging-notif
 export type ChatMessage = WsNewMessageEvent & {
   pending?: boolean;
   failed?: boolean;
-  tempId?: string;
   revoked?: boolean;
 };
 type ChatState = {
@@ -26,7 +25,6 @@ type ChatState = {
   setMessages: (conversationId: Id, messages: ChatMessage[]) => void;
   addMessage: (message: ChatMessage) => void;
   markMessageSent: (conversationId: Id, tempId: number) => void;
-  replacePending: (conversationId: Id, message: ChatMessage) => void;
   applyRead: (event: WsMessageReadEvent) => void;
   applyTyping: (event: WsTypingBroadcast) => void;
   markRead: (conversationId: Id) => void;
@@ -54,13 +52,19 @@ export const useChatStore = create<ChatState>((set) => ({
   })),
   connection: "disconnected",
   setConnection: (connection) => set({ connection }),
-  setConversations: (conversations) => set({ conversations }),
+  setConversations: (conversations) => set({
+    conversations: [...new Map(conversations.map((conversation) => [
+      String(conversation.conversationId), conversation,
+    ])).values()],
+  }),
   setMessages: (conversationId, messages) =>
     set((state) => {
       // A REST snapshot may arrive after a newer WebSocket message.
-      const merged = new Map(messages.map((message) => [message.messageId, message]));
+      // REST can return a string ID while STOMP normalizes the same ID to a number.
+      const merged = new Map(messages.map((message) => [String(message.messageId), message]));
       for (const message of state.messages[conversationId] ?? []) {
-        if (!merged.get(message.messageId)?.revoked) merged.set(message.messageId, message);
+        const key = String(message.messageId);
+        if (!merged.get(key)?.revoked) merged.set(key, message);
       }
       return { messages: { ...state.messages, [conversationId]:
         [...merged.values()]
@@ -78,7 +82,7 @@ export const useChatStore = create<ChatState>((set) => ({
       if (scope === "everyone") message = { ...message, revoked: true, content: "", mediaUrls: [] };
       if (
         current.some(
-          (item) => item.messageId === message.messageId && !item.pending,
+          (item) => String(item.messageId) === String(message.messageId) && !item.pending,
         )
       )
         return state;
@@ -87,7 +91,9 @@ export const useChatStore = create<ChatState>((set) => ({
         (item) => item.messageId < 0 && item.sender.userId === message.sender.userId &&
           item.content === message.content && item.messageType === message.messageType,
       );
-      const withoutPending = current.filter((_, index) => index !== pendingIndex);
+      const withoutPending = current.filter((item, index) =>
+        index !== pendingIndex && String(item.messageId) !== String(message.messageId),
+      );
       return {
         conversations: state.conversations.map((conversation) => {
           if (conversation.conversationId !== message.conversationId) return conversation;
@@ -117,13 +123,6 @@ export const useChatStore = create<ChatState>((set) => ({
               ? { ...message, pending: false }
               : message,
         ),
-      },
-    })),
-  replacePending: (conversationId, message) =>
-    set((state) => ({
-      messages: {
-        ...state.messages,
-        [conversationId]: [...(state.messages[conversationId] ?? []), message],
       },
     })),
   applyRead: (event) =>

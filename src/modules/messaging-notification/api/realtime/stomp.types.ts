@@ -17,7 +17,7 @@ export type SendWsMessageRequest = {
   replyToMessageId: Id | null;
 };
 export type ReadWsMessageRequest = { conversationId: Id; messageId: Id };
-export type TypingWsRequest = { conversationId: Id; isTyping: boolean };
+export type TypingWsRequest = { conversationId: Id; typing: boolean };
 export type WsReaction = { emoji: string; count: number; userIds: Id[] };
 export type WsReadBy = { userId: Id; readAt: string };
 export type WsNewMessageEvent = {
@@ -60,8 +60,6 @@ type WsTypingBroadcastRaw = {
   typing: boolean;
   user: WsUserInfo;
 };
-export type WsUserQueueEvent = WsNewMessageEvent | WsMessageReadEvent;
-export type ConnectionState = "disconnected" | "connecting" | "connected";
 
 export const isWsNewMessageEvent = (
   value: unknown,

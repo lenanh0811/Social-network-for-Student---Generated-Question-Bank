@@ -1,7 +1,6 @@
 import type { Conversation } from './interfaces/messages.interface';
 import type { ChatMessage } from '../store/chat-store';
 import type { ConversationItemData, MessageItemData } from './types/types';
-import { isMock } from '@/api/http';
 
 const enumKeys = new Set(['type', 'messageType', 'conversationType', 'eventType', 'scope', 'role']);
 /** Convert snake_case wire data once at the REST/STOMP boundary. */
@@ -30,6 +29,6 @@ export const toConversationItem = (item: Conversation): ConversationItemData => 
   lastMessage: item.lastMessage?.content, time: toTime(item.lastMessage?.createdAt), unreadCount: item.unreadCount,
 });
 export const toMessageItem = (message: ChatMessage, userId: string): MessageItemData => ({
-  id: String(message.messageId), content: message.content, mine: String(message.sender.userId) === (isMock ? '1' : userId),
+  id: String(message.messageId), content: message.content, mine: String(message.sender.userId) === userId,
   time: toTime(message.createdAt), pending: message.pending, failed: message.failed, revoked: message.revoked,
 });

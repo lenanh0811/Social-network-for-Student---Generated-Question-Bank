@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -52,17 +52,8 @@ export function ChatWindow({
     } catch (error) { setDeleteError(error instanceof Error ? error.message : "Không thể xóa tin nhắn."); }
     finally { setDeleting(false); }
   };
-  const listRef = useRef<FlatList<MessageItemData>>(null);
-  const messageCount = messages.length;
-  const lastMessageId = messages.at(-1)?.id;
-  useEffect(() => {
-    if (loading) return;
-    const timer = setTimeout(
-      () => listRef.current?.scrollToEnd({ animated: messageCount > 1 }),
-      0,
-    );
-    return () => clearTimeout(timer);
-  }, [lastMessageId, messageCount, loading]);
+  // Offset zero is the newest message, so opening a chat requires no scroll.
+  const newestFirst = useMemo(() => [...messages].reverse(), [messages]);
   if (!conversation) {
     return (
       <View style={styles.placeholder}>
@@ -101,23 +92,21 @@ export function ChatWindow({
         <ActivityIndicator style={styles.loading} color={colors.primary} />
       ) : (
         <FlatList
-          ref={listRef}
+          key={`messages-${conversation.id}`}
+          inverted
           style={styles.list}
           contentContainerStyle={styles.listContent}
-          data={messages}
+          data={newestFirst}
           keyExtractor={(m) => m.id}
           renderItem={({ item }) => <MessageBubble data={item} onActions={onDelete ? () => { setActionMessage(item); setDeleteScope(null); setDeleteError(""); } : undefined} />}
-          onContentSizeChange={() =>
-            listRef.current?.scrollToEnd({ animated: false })
-          }
           ListEmptyComponent={
             <Text style={styles.empty}>Hãy bắt đầu cuộc trò chuyện</Text>
           }
         />
       )}
 
-      <MessageInput onSend={onSend} onTypingChange={onTypingChange} />
-      {!!typingText && <Text style={styles.typing}>{typingText}</Text>}
+      <Text style={styles.typing}>{typingText || " "}</Text>
+      <MessageInput key={`composer-${conversation.id}`} onSend={onSend} onTypingChange={onTypingChange} />
       <Modal visible={!!actionMessage} transparent animationType="fade" onRequestClose={closeActions}>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24, backgroundColor: "rgba(0,0,0,0.4)" }}>
           <View style={{ width: "100%", maxWidth: 400, backgroundColor: colors.card, borderRadius: 20, padding: 20, gap: 14 }}>
@@ -158,7 +147,7 @@ const styles = StyleSheet.create({
   listContent: { paddingVertical: 12, flexGrow: 1 },
   loading: { flex: 1 },
   empty: { textAlign: "center", color: colors.muted, marginTop: 40 },
-  typing: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  typing: { color: colors.muted, fontSize: 12, height: 20, marginTop: 4 },
   placeholder: {
     flex: 1,
     alignItems: "center",
