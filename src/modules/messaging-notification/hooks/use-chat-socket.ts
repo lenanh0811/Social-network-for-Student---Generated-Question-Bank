@@ -2,8 +2,7 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth";
 import { getAccessToken } from "@/modules/auth-user/api/client";
-import { isMock, refreshAccessToken } from '@/api/http';
-import { mockChat } from '../api/mock-db';
+import { refreshAccessToken } from '@/api/http';
 import { getConversationMessages, getConversations } from "@/modules/messaging-notification/api/messages";
 import { getChatStompClient } from "@/modules/messaging-notification/api/realtime/stomp.client";
 import {
@@ -127,6 +126,11 @@ export function useChatSocket(activeConversationId: Id | null) {
   const handleUserMessage = useCallback((frame: { body: string }) => {
     const payload = parseWsPayload(frame.body);
     if (__DEV__) console.info("[Chat] MESSAGE tới /user/queue/messages");
+    if (isWsTypingBroadcast(payload)) {
+      const event = normalizeWsTypingBroadcast(payload);
+      if (event.userId !== Number(user.id)) applyTyping(event);
+      return;
+    }
     if (isWsNewMessageEvent(payload)) {
       const event = normalizeWsNewMessageEvent(payload);
       const state = useChatStore.getState();
@@ -151,46 +155,31 @@ export function useChatSocket(activeConversationId: Id | null) {
       "[Chat] Payload /user/queue/messages không nhận dạng được",
       { keys: payload && typeof payload === "object" ? Object.keys(payload) : [] },
     );
-  }, [addMessage, applyRead, incrementUnread, loadConversations, markRead, sendRead, user.id]);
-
-  const handleTyping = useCallback((frame: { body: string }) => {
-    const payload = parseWsPayload(frame.body);
-    if (isWsTypingBroadcast(payload)) {
-      const event = normalizeWsTypingBroadcast(payload);
-      if (event.userId === Number(user.id)) return;
-      applyTyping(event);
-      return;
-    }
-    console.warn("[Chat] Payload typing không nhận dạng được");
-  }, [applyTyping, user.id]);
+  }, [addMessage, applyRead, applyTyping, incrementUnread, loadConversations, markRead, sendRead, user.id]);
 
   const connectHandlers = useCallback(() => ({
     onMessage: handleUserMessage,
-    onTyping: handleTyping,
     onConnect: () => {
       setConnection("connected");
       void loadConversations();
       const conversationId = activeConversationRef.current;
       if (conversationId !== null) void loadMessages(conversationId);
     },
-    onDisconnect: () => setConnection("disconnected"),
+    onDisconnect: () => {
+      typingState.current.clear();
+      setConnection("disconnected");
+    },
     onError: (message: string) => {
       console.error("[Chat] STOMP", message);
       setError(message);
       setConnection("disconnected");
     },
-  }), [handleTyping, handleUserMessage, loadConversations, loadMessages, setConnection]);
+  }), [handleUserMessage, loadConversations, loadMessages, setConnection]);
 
   useEffect(() => {
     if (status !== "signedIn") return;
     const readReceipts = lastRead.current;
     const typingStatuses = typingState.current;
-    if (isMock) {
-      mockChat.reset();
-      setConnection('connected');
-      const timer = setTimeout(() => void loadConversations(), 0);
-      return () => { clearTimeout(timer); requestGeneration.current += 1; clearChat(); };
-    }
     if (!process.env.EXPO_PUBLIC_WS_URL?.trim()) {
       const timer = setTimeout(() => setError('EXPO_PUBLIC_WS_URL chưa được cấu hình.'), 0);
       return () => clearTimeout(timer);
@@ -212,6 +201,11 @@ export function useChatSocket(activeConversationId: Id | null) {
         // while testing in another tab/window; only mobile pauses the socket.
         if (Platform.OS === "web") return;
         if (nextState === "background" || nextState === "inactive") {
+          if (typingTimer.current) clearTimeout(typingTimer.current);
+          for (const [conversationId, typing] of typingStatuses) {
+            if (typing) client.sendTyping({ conversationId, typing: false });
+          }
+          typingStatuses.clear();
           client.disconnect();
           setConnection("disconnected");
         }
@@ -226,6 +220,9 @@ export function useChatSocket(activeConversationId: Id | null) {
       clearTimeout(initialLoad);
       appStateSubscription?.remove();
       if (typingTimer.current) clearTimeout(typingTimer.current);
+      for (const [conversationId, typing] of typingStatuses) {
+        if (typing) client.sendTyping({ conversationId, typing: false });
+      }
       client.dispose();
       clientRef.current = null;
       readReceipts.clear();
@@ -237,27 +234,27 @@ export function useChatSocket(activeConversationId: Id | null) {
 
   useEffect(() => {
     const client = clientRef.current;
-    if (isMock && activeConversationId !== null) {
-      const timer = setTimeout(() => void loadMessages(activeConversationId), 0);
-      return () => clearTimeout(timer);
-    }
     if (!client || activeConversationId === null) return;
-    client.joinConversation(activeConversationId, handleTyping);
+    const typingStatuses = typingState.current;
     const timer = client.client.connected ? setTimeout(() => void loadMessages(activeConversationId), 0) : undefined;
     return () => {
       if (timer !== undefined) clearTimeout(timer);
-      client.leaveConversation(activeConversationId);
+      if (typingTimer.current) clearTimeout(typingTimer.current);
+      if (typingStatuses.get(activeConversationId)) {
+        client.sendTyping({ conversationId: activeConversationId, typing: false });
+        typingStatuses.delete(activeConversationId);
+      }
     };
-  }, [activeConversationId, handleTyping, loadMessages]);
+  }, [activeConversationId, loadMessages]);
 
   const sendTyping = (conversationId: Id, isTyping: boolean) => {
-    if (isMock) return;
+    if (!clientRef.current?.client.connected) return;
     if (typingTimer.current) clearTimeout(typingTimer.current);
     if (!isTyping) {
       if (typingState.current.get(conversationId)) {
         clientRef.current?.sendTyping({
           conversationId: conversationId,
-          isTyping: false,
+          typing: false,
         });
         typingState.current.set(conversationId, false);
       }
@@ -266,7 +263,7 @@ export function useChatSocket(activeConversationId: Id | null) {
     if (!typingState.current.get(conversationId)) {
       clientRef.current?.sendTyping({
         conversationId: conversationId,
-        isTyping: true,
+        typing: true,
       });
       typingState.current.set(conversationId, true);
     }
@@ -277,10 +274,6 @@ export function useChatSocket(activeConversationId: Id | null) {
   };
 
   const sendMessage = (payload: SendWsMessageRequest) => {
-    if (isMock) {
-      addMessage(toMessage(mockChat.send(payload, user.name)));
-      return;
-    }
     sendTyping(payload.conversationId, false);
     const temporaryMessageId = -Date.now();
     addMessage({
@@ -320,7 +313,6 @@ export function useChatSocket(activeConversationId: Id | null) {
     },
     sendMessage,
     sendTyping,
-    sendRead,
     connection: useChatStore((state) => state.connection),
   };
 }

@@ -1,6 +1,5 @@
 import { api } from '@/api/backend';
 import { fromApi } from './adapters';
-import { mockNotifications } from './mock-db';
 import type { Pagination } from "@/modules/messaging-notification/api/interfaces/messages.interface";
 
 export interface NotificationItem {
@@ -17,7 +16,7 @@ export function getNotifications(after?: number, limit = 20) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("Số thông báo mỗi trang phải từ 1 đến 50.");
   if (after !== undefined && (!Number.isSafeInteger(after) || after <= 0)) throw new Error("Con trỏ thông báo không hợp lệ.");
   return api<unknown>('GET', '/notifications', {
-    query: { limit, after }, mock: () => mockNotifications(after, limit),
+    query: { limit, after },
   }).then((raw) => {
     const page = fromApi<NotificationsPage>(raw);
     return { ...page, items: page.items.map(item => ({

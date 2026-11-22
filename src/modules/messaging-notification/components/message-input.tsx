@@ -31,6 +31,7 @@ export function MessageInput({ onSend, onTypingChange }: Props) {
           onTypingChange?.(value.trim().length > 0);
         }}
         onSubmitEditing={submit}
+        onBlur={() => onTypingChange?.(false)}
         returnKeyType="send"
       />
       <Pressable
