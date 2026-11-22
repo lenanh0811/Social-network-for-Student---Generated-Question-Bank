@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { colors, radius, glass } from "@/theme";
 import { ConversationItemData } from "@/modules/messaging-notification/api/types/types";
-import { Avatar } from "./avatar";
+import { Avatar } from "@/modules/messaging-notification/components/avatar";
 
 type Props = {
   data: ConversationItemData;
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderColor: glass.border,
   },
   body: { flex: 1 },
-  name: { fontSize: 16, fontWeight: "600", color: colors.text },
+  name: { fontSize: 16, fontWeight: "700", color: colors.text },
   preview: { fontSize: 14, color: colors.muted, marginTop: 2 },
   previewUnread: { color: colors.text, fontWeight: "600" },
   meta: { alignItems: "flex-end", gap: 6 },
@@ -69,5 +69,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: { color: colors.card, fontSize: 12, fontWeight: "600" },
+  badgeText: { color: colors.card, fontSize: 12, fontWeight: "700" },
 });

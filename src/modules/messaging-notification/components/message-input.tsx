@@ -3,9 +3,12 @@ import { View, TextInput, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, glass } from "@/theme";
 
-type Props = { onSend: (text: string) => void };
+type Props = {
+  onSend: (text: string) => void;
+  onTypingChange?: (typing: boolean) => void;
+};
 
-export function MessageInput({ onSend }: Props) {
+export function MessageInput({ onSend, onTypingChange }: Props) {
   const [text, setText] = useState("");
   const canSend = text.trim().length > 0;
 
@@ -13,6 +16,7 @@ export function MessageInput({ onSend }: Props) {
     if (!canSend) return;
     onSend(text.trim());
     setText("");
+    onTypingChange?.(false);
   };
 
   return (
@@ -22,7 +26,10 @@ export function MessageInput({ onSend }: Props) {
         placeholder="Aa"
         placeholderTextColor={colors.muted}
         value={text}
-        onChangeText={setText}
+        onChangeText={(value) => {
+          setText(value);
+          onTypingChange?.(value.trim().length > 0);
+        }}
         onSubmitEditing={submit}
         returnKeyType="send"
       />

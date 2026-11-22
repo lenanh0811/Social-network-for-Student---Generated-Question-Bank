@@ -1,5 +1,4 @@
-import { View, StyleSheet } from "react-native";
-import { ViewProps } from "react-native";
+import { StyleSheet, View, type ViewProps } from "react-native";
 import { glass } from "@/theme";
 
 export function GlassCard({ style, ...props }: ViewProps) {

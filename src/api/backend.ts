@@ -1,4 +1,4 @@
-import { call, refreshAccessToken } from './http';
+import { call, getApiBaseUrl, refreshAccessToken } from './http';
 
 /** Lỗi từ backend: `message` là thông báo tiếng Việt của server. */
 export class ApiError extends Error {
@@ -23,6 +23,7 @@ const qs = (q?: Query) => {
 export async function api<T>(method: string, path: string, opts: { body?: unknown; query?: Query; mock?: () => T | Promise<T> } = {}): Promise<T> {
   const url = path + qs(opts.query);
   const send = () => call<T>(method, url, opts.body, opts.mock, {
+    baseUrl: getApiBaseUrl('api/v1'),
     parseResponse: async (res) => {
       const text = res.status === 204 ? '' : await res.text();
       let json: { code?: unknown; message?: string; data?: T } | undefined;
