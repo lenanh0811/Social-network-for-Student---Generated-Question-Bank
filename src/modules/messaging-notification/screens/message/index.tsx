@@ -1,89 +1,76 @@
+import { toConversationItem, toMessageItem } from '../../api/adapters';
 import { useState } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { colors } from "@/theme";
-import { ConversationItemData, MessageItemData } from "@/modules/messaging-notification/api/types/types";
+import { LinearGradient } from "expo-linear-gradient";
+import { messageBackground } from "../../theme";
+import { useAuth } from "@/context/auth";
+import { useChatSocket } from "@/modules/messaging-notification/hooks/use-chat-socket";
+import { useChatStore } from "@/modules/messaging-notification/store/chat-store";
+import type { DeleteMessageScope } from "@/modules/messaging-notification/api/interfaces/messages.interface";
+import type { Id } from "@/modules/messaging-notification/api/realtime/stomp.types";
+import type { ConversationItemData, MessageItemData } from "@/modules/messaging-notification/api/types/types";
 import { GlassCard } from "@/modules/messaging-notification/components/glass-card";
 import { ConversationList } from "@/modules/messaging-notification/components/conversation-list";
 import { ChatWindow } from "@/modules/messaging-notification/components/chat-window";
+import { deleteMessage } from "@/modules/messaging-notification/api/messages";
 
-// Đặt false khi đã nối API, rồi xóa hai mảng PREVIEW_*
-const PREVIEW_MODE = true;
 const HEADER_HEIGHT = 72;
-const PREVIEW_CONVERSATIONS: ConversationItemData[] = [
-  {
-    id: "1",
-    name: "Trần Minh",
-    lastMessage: "Bạn làm xong bài tập chưa?",
-    time: "10:30",
-    unreadCount: 2,
-  },
-  {
-    id: "2",
-    name: "Lê Thu Hà",
-    lastMessage: "Cảm ơn bạn nhé!",
-    time: "Hôm qua",
-  },
-  {
-    id: "3",
-    name: "Nhóm ôn thi Giải tích",
-    lastMessage: "Mai 8h học ở thư viện",
-    time: "T2",
-  },
-];
-
-const PREVIEW_MESSAGES: MessageItemData[] = [
-  {
-    id: "m1",
-    content: "Chào bạn, bạn làm xong bài tập chưa?",
-    mine: false,
-    time: "10:28",
-  },
-  {
-    id: "m2",
-    content: "Mình xong rồi, để mình gửi cho.",
-    mine: true,
-    time: "10:29",
-  },
-  { id: "m3", content: "Cảm ơn nhiều nha!", mine: false, time: "10:30" },
-];
-
+const EMPTY_MESSAGES: ReturnType<
+  typeof useChatStore.getState
+>["messages"][number] = [];
 export default function MessageScreen() {
+  const { user } = useAuth();
   const { width } = useWindowDimensions();
   const isWide = width >= 900;
-
   const [selected, setSelected] = useState<ConversationItemData | null>(null);
+  const conversationData = useChatStore((state) => state.conversations);
+  const rawMessages = useChatStore((state) =>
+    selected
+      ? (state.messages[Number(selected.id)] ?? EMPTY_MESSAGES)
+      : EMPTY_MESSAGES,
+  );
+  const typing = useChatStore((state) =>
+    selected ? state.typing[Number(selected.id)] : null,
+  );
+  const { sendMessage, sendTyping, connection, error, loadingConversations, loadingMessages, retry } = useChatSocket(
+    selected ? (Number(selected.id) as Id) : null,
+  );
+  const conversations = conversationData.map(toConversationItem);
+  const messages: MessageItemData[] = rawMessages.map(message => toMessageItem(message, user.id));
 
-  // gọi API danh sách hội thoại -> map sang ConversationItemData[]
-  const conversations: ConversationItemData[] = PREVIEW_MODE
-    ? PREVIEW_CONVERSATIONS
-    : [];
-  const loadingConversations = false;
-  const conversationsError: string | null = null;
+  const handleSend = (content: string) => {
+    if (!selected) return;
+    sendMessage({
+      conversationId: Number(selected.id),
+      content,
+      messageType: "text",
+      mediaUrls: [],
+      replyToMessageId: null,
+    });
+    sendTyping(Number(selected.id), false);
+  };
 
-  // gọi API lấy tin nhắn theo selected.id -> map sang MessageItemData[]
-  const messages: MessageItemData[] =
-    PREVIEW_MODE && selected ? PREVIEW_MESSAGES : [];
-  const loadingMessages = false;
-
-  // gọi API gửi tin nhắn tới selected.id
-  const handleSend = (text: string) => {};
-
-  // gọi lại API danh sách hội thoại
-  const handleRetry = () => {};
+  const handleDelete = async (messageId: string, scope: DeleteMessageScope) => {
+    if (!selected) return;
+    const conversationId = Number(selected.id);
+    await deleteMessage(Number(messageId), scope);
+    useChatStore.getState().applyDelete(conversationId, Number(messageId), scope);
+  };
 
   const list = (
     <GlassCard style={isWide ? styles.sidebar : styles.full}>
       <ConversationList
         items={conversations}
         loading={loadingConversations}
-        error={conversationsError}
+        error={
+          error || (connection === "disconnected" ? "Đang mất kết nối realtime" : null)
+        }
         selectedId={selected?.id}
         onSelect={setSelected}
-        onRetry={handleRetry}
+        onRetry={retry}
       />
     </GlassCard>
   );
-
   const chat = (
     <GlassCard style={isWide ? styles.main : styles.full}>
       <ChatWindow
@@ -91,13 +78,20 @@ export default function MessageScreen() {
         messages={messages}
         loading={loadingMessages}
         onSend={handleSend}
+        onDelete={handleDelete}
+        onTypingChange={(typingState) =>
+          selected && sendTyping(Number(selected.id), typingState)
+        }
+        typingText={
+          typing && typing.isTyping ? `${typing.fullName} đang nhập...` : ""
+        }
         onBack={isWide ? undefined : () => setSelected(null)}
       />
     </GlassCard>
   );
 
   return (
-    <View style={[styles.fill, { backgroundColor: colors.bg }]}>
+    <LinearGradient colors={messageBackground} style={styles.fill}>
       <View style={[styles.root, { paddingTop: HEADER_HEIGHT + 16 }]}>
         {isWide ? (
           <>
@@ -110,7 +104,7 @@ export default function MessageScreen() {
           list
         )}
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 

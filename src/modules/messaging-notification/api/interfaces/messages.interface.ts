@@ -1,63 +1,81 @@
-// chức năng lấy danh sách hội thoại path : /conservations
-interface LastMessage {
-  message_id: number;
+import type {
+  Id,
+  MessageType,
+  WsReaction,
+  WsReadBy,
+} from "@/modules/messaging-notification/api/realtime/stomp.types";
+
+export type ApiEnvelope<T> = { code: string; message: string; data: T };
+export type DeleteMessageScope = "me" | "everyone";
+export type DeleteMessageResult = { messageId: Id; scope: DeleteMessageScope; note?: string };
+export type Pagination = {
+  before?: Id;
+  after?: Id;
+  hasPrev?: boolean;
+  hasNext: boolean;
+};
+export type Conversation = {
+  conversationId: Id;
+  type: "direct" | "group";
+  displayName: string;
+  displayAvatarUrl?: string | null;
+  memberCount?: number;
+  lastMessage: {
+    messageId?: Id;
+    id?: Id;
+    content: string;
+    messageType?: MessageType;
+    createdAt?: string;
+  } | null;
+  unreadCount: number;
+  hiddenAt?: string | null;
+  updatedAt?: string;
+  muted?: boolean;
+};
+export type GetConversationsData = {
+  items: Conversation[];
+  pagination: Pagination;
+  totalConversations?: number;
+};
+export type ConversationMessage = {
+  messageId: Id;
+  conversationId?: Id;
+  senderId: Id;
+  senderName?: string;
+  avatarUrl?: string | null;
+  frameUrl?: string | null;
   content: string;
-  message_type: string;
-  created_at: string;
-}
-
-interface Conversation {
-  conversation_id: number;
-  type: "DIRECT" | "GROUP";
-  display_name: string;
-  display_avatar_url: string;
-  member_count: number;
-  last_message: LastMessage | null;
-  unread_count: number;
-  hidden_at: string | null;
-  updated_at: string;
-  muted: boolean;
-}
-
-interface ConversationPagination {
-  before: number;
-  after: number;
-  has_prev: boolean;
-  has_next: boolean;
-}
-
-export interface GetConversationsResponse {
-  code: string;
-  message: string;
-  data: {
-    items: Conversation[];
-    pagination: ConversationPagination;
-    total_conversations: number;
-  };
-}
-// ===== hết chức năng get / conservations
-
-// chức năng tạo hội thoại trực tiếp path : /conservations/direct
-interface ConversationMember {
-  user_id: number;
-  full_name: string;
-  avatar_url: string;
-  frame_url: string;
-  role: string;
-  created_at: string;
-}
-
-interface DirectConversation {
-  conversation_id: number;
-  type: "DIRECT";
-  name: string;
-  avatar_url: string;
-  members: ConversationMember[];
-  created_at: string;
-}
-
-export interface CreateDirectConversationResponse {
-  code: string;
-  message: string;
-  data: DirectConversation;
-}
+  messageType: MessageType;
+  createdAt: string;
+  mediaUrls: string[];
+  repliedMessageId?: Id | null;
+  replyToMessageId?: Id | null;
+  isEdited?: boolean;
+  edited?: boolean;
+  hidden?: boolean;
+  revoked?: boolean;
+  reactions?: WsReaction[];
+  readBy?: WsReadBy[];
+};
+export type GetConversationMessagesData = {
+  conversationId: Id;
+  conversationType: "direct" | "group";
+  messages: ConversationMessage[];
+  pagination: Pagination;
+};
+export type DirectConversation = {
+  conversationId: Id;
+  type: "direct";
+  name?: string;
+  avatarUrl?: string | null;
+  members: {
+    userId: Id;
+    fullName: string;
+    avatarUrl?: string | null;
+    frameUrl?: string | null;
+    role?: string;
+    createdAt?: string;
+  }[];
+  createdAt?: string;
+};
+export type CreateDirectConversationResponse = DirectConversation;

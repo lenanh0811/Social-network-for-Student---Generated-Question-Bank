@@ -12,4 +12,7 @@ export type MessageItemData = {
   content: string;
   mine: boolean;
   time?: string;
+  pending?: boolean;
+  failed?: boolean;
+  revoked?: boolean;
 };

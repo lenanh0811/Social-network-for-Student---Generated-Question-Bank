@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, glass } from "@/theme";
 import { ConversationItemData } from "@/modules/messaging-notification/api/types/types";
-import { ConversationItem } from "./conversation-item";
+import { ConversationItem } from "@/modules/messaging-notification/components/conversation-item";
 
 type Props = {
   items: ConversationItemData[];
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   title: {
     fontSize: 22,
-    fontWeight: "600",
+    fontWeight: "800",
     color: colors.text,
     marginBottom: 12,
   },
