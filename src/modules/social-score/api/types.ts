@@ -24,6 +24,12 @@ export interface social_user {
   name: string;
   avatarUrl?: string;
   frameUrl?: string;
+  /** Chỉ có khi lấy từ kết quả tìm kiếm người dùng. */
+  role?: 'student' | 'lecturer' | 'admin';
+  faculty?: string;
+  major?: string;
+  code?: string;
+  followers?: number;
 }
 
 export interface post {

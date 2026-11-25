@@ -68,7 +68,7 @@ export function Mg6({ onClose }: { onClose?: () => void }) {
             const on = pick.includes(q.id);
             return (
               <Pressable key={q.id} disabled={done} onPress={() => toggle(q.id)}>
-                <View style={{ gap: 4, padding: 10, borderRadius: 14, backgroundColor: on ? colors.primarySoft : 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: on ? colors.primary : 'rgba(255,255,255,0.9)' }}>
+                <View style={{ gap: 4, padding: 10, borderRadius: 14, backgroundColor: on ? colors.primarySoft : 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: on ? colors.primary : '#CED0D4' }}>
                   <Row style={{ flexWrap: 'nowrap' }}>
                     <Ionicons name={on ? 'hardware-chip' : 'hardware-chip-outline'} size={22} color={on ? colors.primary : colors.muted} />
                     <Text style={{ flex: 1, color: colors.text, fontWeight: '600' }}>{i + 1}. {q.content}</Text>

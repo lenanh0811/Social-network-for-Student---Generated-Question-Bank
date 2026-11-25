@@ -10,7 +10,7 @@ export function NotificationPopover() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   if (!open) return null;
-  const top = (Platform.OS === "web" ? 0 : insets.top) + 70;
+  const top = (Platform.OS === "web" ? 0 : insets.top) + 60;
   return <View style={StyleSheet.absoluteFill}>
     <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} accessibilityLabel="Đóng thông báo" />
     <View style={{ position: "absolute", top, right: 10, width: Math.min(380, width - 20), maxHeight: height - top - 20 }}>

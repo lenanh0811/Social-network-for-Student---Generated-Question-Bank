@@ -6,7 +6,7 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
   return (
     <Pressable onPress={onPress}>
       {active ? (
-        <View style={[styles.chip, { backgroundColor: colors.primary, borderColor: 'rgba(255,255,255,0.6)' }]}>
+        <View style={[styles.chip, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
           <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>{label}</Text>
         </View>
       ) : (

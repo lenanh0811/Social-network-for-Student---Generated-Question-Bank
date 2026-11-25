@@ -9,7 +9,7 @@ export function Field({ label, error, ...p }: TextInputProps & { label: string; 
       <TextInput
         placeholderTextColor={colors.muted}
         {...p}
-        style={[styles.input, p.multiline && { minHeight: 80, textAlignVertical: 'top' }, !!error && { borderColor: colors.danger }, Platform.OS === 'web' && ({ outlineStyle: 'none' } as object)]}
+        style={[styles.input, p.multiline && { borderRadius: 20, minHeight: 80, textAlignVertical: 'top' }, !!error && { borderColor: colors.danger }, Platform.OS === 'web' && ({ outlineStyle: 'none' } as object)]}
       />
       {error ? <Text style={{ color: colors.danger, fontSize: 12 }}>{error}</Text> : null}
     </View>
@@ -18,5 +18,5 @@ export function Field({ label, error, ...p }: TextInputProps & { label: string; 
 
 const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', color: colors.text },
-  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)', borderRadius: 16, padding: 12, fontSize: 15, backgroundColor: 'rgba(255,255,255,0.65)', color: colors.text },
+  input: { borderWidth: 1, borderColor: '#CED0D4', borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, fontSize: 15, backgroundColor: '#F5F6F7', color: colors.text },
 });

@@ -23,7 +23,7 @@ export function AuthShell({ title, subtitle, children, footer }: {
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
           <View style={s.col}>
             <View style={s.brand}>
-              <LinearGradient colors={['#E0384F', colors.primaryDark]} style={s.logo}>
+              <LinearGradient colors={[colors.primary, colors.primaryDark]} style={s.logo}>
                 <Text style={{ color: '#fff', fontWeight: '600', fontSize: 30 }}>{BRAND.initial}</Text>
               </LinearGradient>
               <Text style={s.brandText}>{BRAND.first}<Text style={{ color: colors.primary }}>{BRAND.second}</Text></Text>
@@ -130,7 +130,7 @@ export function CodeInput({ value, onChange, error, length = 6 }: {
 export function Avatar({ name, size = 72 }: { name: string; size?: number }) {
   const initials = name.trim().split(/\s+/).slice(-2).map((w) => w[0]).join('').toUpperCase() || '?';
   return (
-    <LinearGradient colors={['#E0384F', colors.primaryDark]} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' }}>
+    <LinearGradient colors={[colors.primary, colors.primaryDark]} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' }}>
       <Text style={{ color: '#fff', fontWeight: '600', fontSize: size * 0.36 }}>{initials}</Text>
     </LinearGradient>
   );
@@ -165,14 +165,14 @@ const s = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', padding: space.lg, paddingVertical: 48 },
   col: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: space.lg },
   brand: { alignItems: 'center', gap: 6 },
-  logo: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
+  logo: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
   brandText: { fontSize: 28, fontWeight: '600', color: colors.text, letterSpacing: -0.5 },
-  card: { borderRadius: 28, padding: space.xl, gap: space.md },
+  card: { borderRadius: 16, padding: space.xl, gap: space.md },
   title: { fontSize: 24, fontWeight: '600', color: colors.text, letterSpacing: -0.4 },
-  eye: { position: 'absolute', right: 14, top: 37 },
+  eye: { position: 'absolute', right: 18, top: 37 },
   notice: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: radius.lg, alignItems: 'flex-start' },
   codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  codeBox: { width: 46, height: 56, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.8)', alignItems: 'center', justifyContent: 'center' },
+  codeBox: { width: 46, height: 56, borderRadius: 28, borderWidth: 1, borderColor: '#CED0D4', backgroundColor: '#F5F6F7', alignItems: 'center', justifyContent: 'center' },
   codeText: { fontSize: 24, fontWeight: '600', color: colors.text },
   info: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },

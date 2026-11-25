@@ -13,6 +13,8 @@ export interface Person {
   since?: string;
   mutualFriends?: number;
   friend?: boolean;
+  /** Đang trực tuyến. Backend hiện chưa trả trường này nên thường là undefined. */
+  online?: boolean;
   /** Người này đang theo dõi tôi. */
   followsMe?: boolean;
   /** Tôi đang theo dõi người này. */

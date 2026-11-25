@@ -24,7 +24,7 @@ export function Button({ title, onPress, icon, variant = 'primary', loading, dis
       ) : (
         <View style={[styles.btn, pad, variant === 'soft'
           ? { backgroundColor: colors.primarySoft }
-          : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.primary }]}>{body}</View>
+            : { backgroundColor: '#E4E6EB' }]}>{body}</View>
       )}
     </Pressable>
   );

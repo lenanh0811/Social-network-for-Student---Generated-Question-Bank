@@ -72,12 +72,12 @@ export function PostCard({ post, onOpen, onUpdate }: {
 
       <View style={styles.actionRow}>
         <Pressable accessibilityRole="button" disabled={reacting} onPress={toggleReaction} style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}>
-          <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={22} color={isLiked ? colors.primary : colors.muted} />
-          <Text style={[styles.actionText, isLiked && { color: colors.primary }]}>{post.reactionCount} Thích</Text>
+          <Ionicons name={isLiked ? 'thumbs-up' : 'thumbs-up-outline'} size={20} color={isLiked ? colors.primary : colors.muted} />
+          <Text style={[styles.actionText, isLiked && { color: colors.primary }]}>Thích{post.reactionCount ? ` · ${post.reactionCount}` : ''}</Text>
         </Pressable>
         <Pressable accessibilityRole="button" onPress={onOpen} style={({ pressed }) => [styles.action, pressed && { opacity: 0.6 }]}>
           <Ionicons name="chatbubble-outline" size={20} color={colors.muted} />
-          <Text style={styles.actionText}>{post.commentCount} Bình luận</Text>
+          <Text style={styles.actionText}>Bình luận{post.commentCount ? ` · ${post.commentCount}` : ''}</Text>
         </Pressable>
       </View>
     </Card>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   video: { height: 220, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center' },
   counter: { position: 'absolute', right: 10, bottom: 10, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   counterText: { color: '#fff', fontSize: 12 },
-  actionRow: { marginHorizontal: 16, marginTop: 4, borderTopWidth: 1, borderTopColor: colors.border, minHeight: 48, flexDirection: 'row' },
-  action: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  actionText: { color: colors.muted, fontSize: 13, fontWeight: '600' },
+  actionRow: { marginHorizontal: 12, marginTop: 4, marginBottom: 2, borderTopWidth: 1, borderTopColor: colors.border, minHeight: 48, flexDirection: 'row' },
+  action: { flex: 1, borderRadius: 999, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  actionText: { color: colors.muted, fontSize: 14, fontWeight: '600' },
 });
