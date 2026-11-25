@@ -52,6 +52,11 @@ export function toUser(value: unknown, fallbackName = 'Người dùng'): social_
     name: String(user.full_name ?? user.name ?? fallbackName),
     avatarUrl: typeof user.avatar_url === 'string' ? user.avatar_url : undefined,
     frameUrl: typeof user.frame_url === 'string' ? user.frame_url : undefined,
+    role: ({ STUDENT: 'student', LECTURER: 'lecturer', ADMIN: 'admin' } as const)[String(user.role ?? '').toUpperCase() as 'STUDENT'],
+    faculty: typeof user.school_faculty === 'string' ? user.school_faculty : undefined,
+    major: typeof user.major === 'string' ? user.major : undefined,
+    code: typeof user.student_lecturer_code === 'string' ? user.student_lecturer_code : undefined,
+    followers: typeof user.followers_count === 'number' ? user.followers_count : undefined,
   };
 }
 

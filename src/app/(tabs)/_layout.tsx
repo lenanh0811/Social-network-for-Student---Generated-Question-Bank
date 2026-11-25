@@ -1,27 +1,35 @@
 import { Tabs } from "expo-router";
-import { View } from "react-native";
+import { usePathname } from "expo-router";
+import { View, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/auth";
 import { NotificationProvider } from "@/context/notifications";
 import { NotificationPopover } from "@/components/notification-popover";
-import { MenuProvider, SideMenu } from "@/components/side-menu";
-import { TopBar } from "@/components/top-bar";
+import { BottomNav, ContactsSidebar, Sidebar, hasRightSidebar } from "@/components/side-menu";
+import { AccountMenu, TopBar, type MenuKind, WIDE_BREAKPOINT, useTopBarHeight } from "@/components/top-bar";
+import { useState } from "react";
+import { colors } from "@/theme";
 
-const page = (title: string) => ({
-  title,
-  headerTransparent: true,
-  header: () => <TopBar />,
-});
+const page = (title: string) => ({ title, headerShown: false });
 
 /**
- * Không dùng thanh tab: điều hướng bằng menu 3 gạch (SideMenu, danh sách ở src/constants.ts).
- * Navbar trên cùng (TopBar): menu 3 gạch, logo, tìm kiếm, chuông thông báo.
+ * Bố cục kiểu Facebook: TopBar cố định trên cùng, Sidebar trái (màn rộng) hoặc BottomNav (màn hẹp).
+ * Danh sách mục điều hướng ở src/constants.ts.
  */
 export default function TabsLayout() {
   const { role } = useAuth();
+  const { width } = useWindowDimensions();
+  const wide = width >= WIDE_BREAKPOINT;
+  const barH = useTopBarHeight();
+  const path = usePathname();
+  const bottom = useSafeAreaInsets().bottom;
+  const [menu, setMenu] = useState<MenuKind>(null);
   return (
     <NotificationProvider>
-      <MenuProvider>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+          <View style={{ flex: 1, flexDirection: "row" }}>
+            {wide ? <Sidebar top={barH} /> : null}
+            <View style={{ flex: 1 }}>
           <Tabs
             tabBar={() => null}
             screenOptions={{ sceneStyle: { backgroundColor: "transparent" } }}
@@ -60,10 +68,14 @@ export default function TabsLayout() {
             />
             <Tabs.Screen name="profile" options={page("Cá nhân")} />
           </Tabs>
+            </View>
+            {wide && hasRightSidebar(path) ? <ContactsSidebar top={barH} /> : null}
+          </View>
+          {wide ? null : <BottomNav bottomInset={bottom} />}
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}><TopBar menu={menu} setMenu={setMenu} /></View>
           <NotificationPopover />
-          <SideMenu />
+          <AccountMenu menu={menu} onClose={() => setMenu(null)} top={barH} />
         </View>
-      </MenuProvider>
     </NotificationProvider>
   );
 }

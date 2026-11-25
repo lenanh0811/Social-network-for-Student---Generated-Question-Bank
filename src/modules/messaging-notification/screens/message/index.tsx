@@ -14,7 +14,7 @@ import { ConversationList } from "@/modules/messaging-notification/components/co
 import { ChatWindow } from "@/modules/messaging-notification/components/chat-window";
 import { deleteMessage } from "@/modules/messaging-notification/api/messages";
 
-const HEADER_HEIGHT = 72;
+const HEADER_HEIGHT = 56;
 const EMPTY_MESSAGES: ReturnType<
   typeof useChatStore.getState
 >["messages"][number] = [];

@@ -8,5 +8,5 @@ export function Badge({ label, fg, bg }: { label: string; fg: string; bg: string
 }
 
 const styles = StyleSheet.create({
-  badge: { paddingVertical: 3, paddingHorizontal: 10, borderRadius: radius.pill, alignSelf: 'flex-start' },
+  badge: { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, alignSelf: 'flex-start' },
 });

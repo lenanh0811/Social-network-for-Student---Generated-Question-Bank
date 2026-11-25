@@ -9,5 +9,5 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 24, padding: space.lg, gap: space.sm },
+  card: { borderRadius: 8, padding: space.lg, gap: space.sm },
 });

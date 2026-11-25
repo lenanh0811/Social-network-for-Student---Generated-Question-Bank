@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { notify } from '@/modules/social-score/utils/dialog';
@@ -10,9 +10,12 @@ import type { media_asset } from '@/modules/social-score/api/types';
 export function MediaUpload({
   value,
   onChange,
+  renderTrigger,
 }: {
   value: media_asset[];
   onChange: (assets: media_asset[]) => void;
+  /** Tự vẽ nút chọn ảnh/video (vd. biểu tượng trong hộp "Thêm vào bài viết"). */
+  renderTrigger?: (open: () => void, uploading: boolean, previews: ReactNode) => ReactNode;
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -67,12 +70,28 @@ export function MediaUpload({
     }
   };
 
+  if (renderTrigger) {
+    const previews = value.length > 0 ? (
+      <View style={styles.previews}>
+        {value.map((asset, index) => (
+          <View key={asset.url ?? asset.uri} style={styles.preview}>
+            {asset.mediaType === 'image' ? <Image source={{ uri: asset.url ?? asset.uri }} style={styles.previewImage} /> : <View style={[styles.previewImage, styles.videoPreview]}><Ionicons name="videocam" size={28} color={colors.muted} /></View>}
+            <Pressable accessibilityRole="button" accessibilityLabel="Gỡ media" onPress={() => onChange(value.filter((_, i) => i !== index))} style={styles.remove}><Ionicons name="close" size={18} color="#fff" /></Pressable>
+          </View>
+        ))}
+      </View>
+    ) : null;
+    return <>{renderTrigger(chooseMedia, uploading, previews)}</>;
+  }
+
   return (
     <View style={styles.container}>
-      <Pressable accessibilityRole="button" disabled={uploading} onPress={chooseMedia} style={styles.chooseButton}>
-        <Ionicons name="image-outline" size={22} color={colors.primary} />
-        <Text style={styles.chooseLabel}>{uploading ? 'Đang tải lên…' : 'Ảnh / video'}</Text>
-      </Pressable>
+      {renderTrigger ? null : (
+        <Pressable accessibilityRole="button" disabled={uploading} onPress={chooseMedia} style={styles.chooseButton}>
+          <Ionicons name="image-outline" size={22} color={colors.primary} />
+          <Text style={styles.chooseLabel}>{uploading ? 'Đang tải lên…' : 'Ảnh / video'}</Text>
+        </Pressable>
+      )}
       <View style={styles.previews}>
         {value.map((asset, index) => (
           <View key={asset.url ?? asset.uri} style={styles.preview}>

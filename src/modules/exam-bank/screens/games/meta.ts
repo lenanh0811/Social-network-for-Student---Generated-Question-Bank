@@ -4,7 +4,7 @@ import type { IconName } from './game-shell';
 export const GAME_META: Record<GameType, { no: number; title: string; short: string; icon: IconName; color: string }> = {
   GAME_1_PARTICIPANTS: { no: 1, title: 'Đoán số lượng', short: 'Bao nhiêu bạn trong lớp sẽ đề xuất câu hỏi ngày mai?', icon: 'people', color: '#4472C4' },
   GAME_2_APPROVED_QUESTIONS: { no: 2, title: 'Đoán tỷ lệ duyệt', short: 'Bao nhiêu câu của bạn được giảng viên chọn?', icon: 'checkmark-done', color: '#1E8E4E' },
-  GAME_3_AUTHOR_CONFIDENCE: { no: 3, title: 'Mức tự tin của tác giả', short: 'Bạn tự tin đến đâu về câu hỏi của mình?', icon: 'speedometer', color: '#E0384F' },
+  GAME_3_AUTHOR_CONFIDENCE: { no: 3, title: 'Mức tự tin của tác giả', short: 'Bạn tự tin đến đâu về câu hỏi của mình?', icon: 'speedometer', color: '#1877F2' },
   GAME_4_SUBJECT_BANK_SIZE: { no: 4, title: 'Quy mô ngân hàng đề', short: 'Cuối kỳ ngân hàng có bao nhiêu câu?', icon: 'library', color: '#B26A00' },
   GAME_5_REPORT_ERROR: { no: 5, title: 'Báo câu lỗi', short: 'Săn lỗi, nhận điểm khi giảng viên xác nhận.', icon: 'bug', color: '#D32F2F' },
   GAME_6_LLM_IDENTIFICATION: { no: 6, title: 'Đâu là câu của LLM?', short: 'Phân biệt câu do AI và do người viết.', icon: 'hardware-chip', color: '#7B4DD6' },

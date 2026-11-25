@@ -1,16 +1,16 @@
 export const colors = {
-  primary: '#C21F36',
-  primaryDark: '#9E1628',
-  primarySoft: '#FBE9EC',
+  primary: '#1877F2',
+  primaryDark: '#166FE5',
+  primarySoft: '#E7F3FF',
   accent: '#E8A317',
   accentSoft: '#FDF3DC',
-  blue: '#4472C4',
-  blueSoft: '#E6ECF8',
-  bg: '#F5F5F7',
+  blue: '#1877F2',
+  blueSoft: '#E7F3FF',
+  bg: '#F0F2F5',
   card: '#FFFFFF',
-  text: '#1B1B1F',
-  muted: '#6B6B76',
-  border: '#E3E3E8',
+  text: '#050505',
+  muted: '#65676B',
+  border: '#CED0D4',
   success: '#1E8E4E',
   successSoft: '#E3F5EA',
   danger: '#D32F2F',
@@ -18,15 +18,15 @@ export const colors = {
   warning: '#B26A00',
   warningSoft: '#FFF1D6',
 };
-export const radius = { sm: 8, md: 12, lg: 16, pill: 999 };
+export const radius = { sm: 6, md: 8, lg: 12, pill: 999 };
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };
 
-/** Liquid glass: bề mặt mờ, viền sáng, bóng mềm. */
+/** Bề mặt phẳng kiểu Facebook: nền trắng, viền mảnh, bóng nhẹ. */
 export const glass = {
-  tint: 'rgba(255,255,255,0.58)',
-  tintStrong: 'rgba(255,255,255,0.78)',
-  border: 'rgba(255,255,255,0.85)',
+  tint: '#FFFFFF',
+  tintStrong: '#FFFFFF',
+  border: '#E4E6EB',
   edge: 'rgba(0,0,0,0.06)',
-  blur: 40,
-  shadow: { shadowColor: '#2A1A3A', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } },
+  blur: 0,
+  shadow: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
 };
